@@ -16,11 +16,6 @@ func pr_str(_ obj: MalVal, _ print_readably: Bool = true) -> String {
     case MalVal.MalKeyword(let str):
         return ":" + str
     case MalVal.MalString(let str):
-        //print("kw: '\(str[str.startIndex])'")
-        // jmj - Keyword check
-//        if str.count > 0 && str[str.startIndex] == "\u{029e}" {
-//            return ":" + str[str.index(after: str.startIndex)..<str.endIndex]
-//        } else
         if print_readably {
             let s1 = str.replacingOccurrences(of: "\\", with: "\\\\")
             let s2 = s1.replacingOccurrences(of: "\"", with: "\\\"")
@@ -32,6 +27,7 @@ func pr_str(_ obj: MalVal, _ print_readably: Bool = true) -> String {
     case MalVal.MalSymbol(let str):
         return str
     case MalVal.MalInt(let i): return String(i)
+    case MalVal.MalFloat(let f): return String(f)
     case MalVal.MalNil:        return "nil"
     case MalVal.MalFalse:      return "false"
     case MalVal.MalTrue:       return "true"
@@ -41,7 +37,7 @@ func pr_str(_ obj: MalVal, _ print_readably: Bool = true) -> String {
         return "(fn* \(pr_str(params![0])) \(pr_str(ast![0])))"
     case MalVal.MalAtom(let ma):
         return "(atom \(pr_str(ma.val, print_readably)))"
-    default:
-        return String(describing:obj)
+//    default:
+//        return String(describing:obj)
     }
 }

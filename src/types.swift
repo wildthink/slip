@@ -35,6 +35,17 @@ enum MalVal {
     case MalAtom(MutableAtom)
 }
 
+extension MalVal {
+
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(
+//    }
+    public static func == (lhs: MalVal, rhs: MalVal) -> Bool {
+        return equal_Q(lhs, rhs)
+    }
+
+
+}
 typealias MV = MalVal
 
 // General functions
@@ -70,7 +81,10 @@ func equal_Q(_ a: MalVal, _ b: MalVal) -> Bool {
     case (MV.MalNil, MV.MalNil): return true
     case (MV.MalFalse, MV.MalFalse): return true
     case (MV.MalTrue, MV.MalTrue): return true
+
     case (MV.MalInt(let i1), MV.MalInt(let i2)): return i1 == i2
+    case (MV.MalFloat(let i1), MV.MalFloat(let i2)): return i1 == i2
+    case (MV.MalKeyword(let i1), MV.MalKeyword(let i2)): return i1 == i2
     case (MV.MalString(let s1), MV.MalString(let s2)): return s1 == s2
     case (MV.MalSymbol(let s1), MV.MalSymbol(let s2)): return s1 == s2
     case (MV.MalList(let l1,_), MV.MalList(let l2,_)):

@@ -99,21 +99,15 @@ let core_ns: Dictionary<String,(Array<MalVal>) throws -> MalVal> = [
     "keyword": {
         switch $0[0] {
             // jmj - Keyword check
-        case MV.MalKeyword(let s) where s.count > 0:
-            return $0[0]
-//        case MV.MalString(let s) where s.count > 0:
-//            if s[s.startIndex] == "\u{029e}" { return $0[0] }
-//            else { return MV.MalString("\u{029e}\(s)") }
-        default: throw MalError.General(msg: "Invalid symbol call")
+        case MV.MalKeyword(let s) where s.count > 0: return $0[0]
+        case MV.MalString(let s) where s.count > 0: return MV.MalKeyword(s)
+        default: throw MalError.General(msg: "Invalid keyword call")
         }
     },
     "keyword?": {
         // jmj - Keyword check
         switch $0[0] {
-        case MV.MalKeyword(let s) where s.count > 0:
-            return MV.MalTrue
-//        case MV.MalString(let s) where s.count > 0:
-//            return wraptf(s[s.startIndex] == "\u{029e}")
+        case MV.MalKeyword(let s) where s.count > 0: return MV.MalTrue
         default: return MV.MalFalse
         }
     },
