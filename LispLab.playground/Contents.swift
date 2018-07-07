@@ -117,15 +117,64 @@ class Reader {
     }
 }
 
+class Printer {
+
+//    var level: Int = 0
+//    var indent: Int = 2
+    var spacer = "  "
+
+    func _pr (_ key: Any, _ value: Any) {
+        Swift.print (key, ":", value)
+    }
+
+    func _pr (_ any: Any, repeat count: Int = 0) {
+        if count > 0 {
+            for _ in 0...count {
+                Swift.print (any, terminator: "")
+            }
+        } else {
+            Swift.print (any)
+        }
+    }
+
+    func pr(_ any: Any?, indent: Int = 0) {
+        guard let any = any else { _pr("nil"); return }
+
+        _pr (spacer, repeat: indent)
+
+        if let map = any as? [AnyHashable:AnyHashable] {
+            _pr ("{")
+            for (k, v) in map {
+                _pr (spacer, repeat: indent + 1)
+                _pr(k, v)
+            }
+            _pr (spacer, repeat: indent)
+            _pr ("}")
+        }
+        else if let list = any as? [AnyHashable] {
+            _pr ("(")
+            for v in list { pr(v, indent: indent + 1) }
+            _pr (spacer, repeat: indent)
+            _pr (")")
+        }
+        else {
+            _pr(any)
+        }
+    }
+}
+
+
 var str = " (<= [1 2.4] foo, { a: 1 b: \"str\"})\n"
 
 let rdr = Reader(str)
+let printer = Printer()
 
 //try? rdr.read()
 
 while let token = try? rdr.read() {
     guard let token = token else { break }
-    print (token)
+    printer.pr(token)
+//    Swift.print (type(of: token), token)
 }
 
 //let sa = Array(str)
