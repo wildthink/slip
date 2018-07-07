@@ -127,6 +127,14 @@ class Printer {
         Swift.print (key, ":", value)
     }
 
+    func _pr (indent count: Int = 0) {
+        if count > 0 {
+            for _ in 0...count {
+                Swift.print (spacer, terminator: "")
+            }
+        }
+    }
+
     func _pr (_ any: Any, repeat count: Int = 0) {
         if count > 0 {
             for _ in 0...count {
@@ -140,21 +148,21 @@ class Printer {
     func pr(_ any: Any?, indent: Int = 0) {
         guard let any = any else { _pr("nil"); return }
 
-        _pr (spacer, repeat: indent)
+        _pr (indent: indent)
 
         if let map = any as? [AnyHashable:AnyHashable] {
             _pr ("{")
             for (k, v) in map {
-                _pr (spacer, repeat: indent + 1)
+                _pr (indent: indent + 1)
                 _pr(k, v)
             }
-            _pr (spacer, repeat: indent)
+            _pr (indent: indent)
             _pr ("}")
         }
         else if let list = any as? [AnyHashable] {
             _pr ("(")
             for v in list { pr(v, indent: indent + 1) }
-            _pr (spacer, repeat: indent)
+            _pr (indent: indent)
             _pr (")")
         }
         else {
