@@ -20,12 +20,13 @@ extension StringScanner {
     }
 }
 
-struct Token: CustomStringConvertible {
+struct Token: CustomStringConvertible, Hashable {
     var type: String
     var name: String
 
-    var description: String { return "\(type):\(name)"}
+    var description: String { return "\(type): '\(name)'"}
 }
+
 
 class Reader {
 
@@ -37,7 +38,7 @@ class Reader {
         scanner = StringScanner(s)
     }
 
-    func read() throws -> Any? {
+    func read() throws -> AnyHashable? {
         guard !scanner.isAtEnd else { return nil }
 //        while !scanner.isAtEnd {
             try scanner.skipWhitespace()
@@ -62,11 +63,43 @@ class Reader {
                     return Token(type: "string", name: token)
                 }
                 // Compound data structures read() recursively
-            case "(": let ch = try scanner.scanChar(); return ch
-            case ")": let ch = try scanner.scanChar(); return ch
-            case "[": let ch = try scanner.scanChar(); return ch
-            case "]": let ch = try scanner.scanChar(); return ch
-            case "{": let ch = try scanner.scanChar(); return ch
+            case "(":
+                try scanner.scanChar();
+                var list = [AnyHashable]()
+                while let nob = try read() {
+                    if let s = nob as? String, s == ")" { break }
+                    list.append(nob)
+                }
+                return list // ch
+
+            case ")": try scanner.scanChar(); return ")"
+
+            case "[":
+                try scanner.scanChar();
+                var list = [AnyHashable]()
+                while let nob = try read() {
+                    if let s = nob as? String, s == "]" { break }
+                    list.append(nob)
+                }
+                return list // ch
+
+            case "]": try scanner.scanChar(); return "]"
+
+            case "{":
+                try scanner.scanChar();
+                var map = [AnyHashable:AnyHashable]()
+                while true {
+                    let ch = try scanner.peekChar()
+                    if ch == "}" { try scanner.scanChar(); return map }
+//                    try read()
+//                    try read()
+                    if let k = try read(), let v = try read() {
+//                        Swift.print ("map", k, v)
+                        map[k] = v
+                    }
+                }
+                return map // ch
+
             case "}": let ch = try scanner.scanChar(); return ch
 
             default:
@@ -84,7 +117,7 @@ class Reader {
     }
 }
 
-var str = " (<= [1 2.4] foo, { a: 1, b: \"str\"})\n()"
+var str = " (<= [1 2.4] foo, { a: 1 b: \"str\"})\n"
 
 let rdr = Reader(str)
 
