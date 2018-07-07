@@ -20,6 +20,16 @@ func IntReduce(_ op: (Int, Int) -> Int, _ start: Int, _ argv: [MalVal]) throws -
     return result
 }
 
+func isKeyword (_ val: MalVal) -> Bool {
+    switch val {
+    case MV.MalString(let s) where s.count > 0:
+        return s[s.startIndex] == "\u{029e}"
+    default: return false
+    }
+}
+
+// jmj end
+
 func IntOp(_ op: (Int, Int) -> Int, _ a: MalVal, _ b: MalVal) throws -> MalVal {
     switch (a, b) {
     case (MV.MalInt(let i1), MV.MalInt(let i2)):
@@ -67,7 +77,9 @@ let core_ns: Dictionary<String,(Array<MalVal>) throws -> MalVal> = [
         case MV.MalString(let s) where s.count == 0:
             return MV.MalTrue
         case MV.MalString(let s):
-            return wraptf(s[s.startIndex] != "\u{029e}")
+            // jmj - Keyword check
+//            return wraptf(s[s.startIndex] != "\u{029e}")
+            return MV.MalTrue
         default: return MV.MalFalse
         }
     },
@@ -86,16 +98,22 @@ let core_ns: Dictionary<String,(Array<MalVal>) throws -> MalVal> = [
     },
     "keyword": {
         switch $0[0] {
-        case MV.MalString(let s) where s.count > 0:
-            if s[s.startIndex] == "\u{029e}" { return $0[0] }
-            else { return MV.MalString("\u{029e}\(s)") }
+            // jmj - Keyword check
+        case MV.MalKeyword(let s) where s.count > 0:
+            return $0[0]
+//        case MV.MalString(let s) where s.count > 0:
+//            if s[s.startIndex] == "\u{029e}" { return $0[0] }
+//            else { return MV.MalString("\u{029e}\(s)") }
         default: throw MalError.General(msg: "Invalid symbol call")
         }
     },
     "keyword?": {
+        // jmj - Keyword check
         switch $0[0] {
-        case MV.MalString(let s) where s.count > 0:
-            return wraptf(s[s.startIndex] == "\u{029e}")
+        case MV.MalKeyword(let s) where s.count > 0:
+            return MV.MalTrue
+//        case MV.MalString(let s) where s.count > 0:
+//            return wraptf(s[s.startIndex] == "\u{029e}")
         default: return MV.MalFalse
         }
     },
@@ -214,10 +232,17 @@ let core_ns: Dictionary<String,(Array<MalVal>) throws -> MalVal> = [
     },
     "get": {
         switch ($0[0], $0[1]) {
+            // jmj - Keyword
+        case (MV.MalNil, _):
+            return MV.MalNil
+        case (MV.MalHashMap(let dict, _), MV.MalKeyword(let k)):
+            return dict[k] ?? MV.MalNil
+//        case (MV.MalNil, MV.MalKeyword(let k)):
+//            return MV.MalNil
         case (MV.MalHashMap(let dict, _), MV.MalString(let k)):
             return dict[k] ?? MV.MalNil
-        case (MV.MalNil, MV.MalString(let k)):
-            return MV.MalNil
+//        case (MV.MalNil, MV.MalString(let k)):
+//            return MV.MalNil
         default: throw MalError.General(msg: "Invalid get call")
         }
     },

@@ -13,11 +13,15 @@ func pr_str(_ obj: MalVal, _ print_readably: Bool = true) -> String {
             " " + pr_str($1, print_readably)
         }
         return "{" + elems.joined(separator: " ")  + "}"
+    case MalVal.MalKeyword(let str):
+        return ":" + str
     case MalVal.MalString(let str):
         //print("kw: '\(str[str.startIndex])'")
-        if str.count > 0 && str[str.startIndex] == "\u{029e}" {
-            return ":" + str[str.index(after: str.startIndex)..<str.endIndex]
-        } else if print_readably {
+        // jmj - Keyword check
+//        if str.count > 0 && str[str.startIndex] == "\u{029e}" {
+//            return ":" + str[str.index(after: str.startIndex)..<str.endIndex]
+//        } else
+        if print_readably {
             let s1 = str.replacingOccurrences(of: "\\", with: "\\\\")
             let s2 = s1.replacingOccurrences(of: "\"", with: "\\\"")
             let s3 = s2.replacingOccurrences(of: "\n", with: "\\n")

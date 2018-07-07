@@ -20,6 +20,7 @@ enum MalVal {
     case MalFloat(Float)
     case MalString(String)
     case MalSymbol(String)
+    case MalKeyword(String)
     case MalList(Array<MalVal>, meta: Array<MalVal>?)
     case MalVector(Array<MalVal>, meta: Array<MalVal>?)
     case MalHashMap(Dictionary<String,MalVal>, meta: Array<MalVal>?)
@@ -116,6 +117,9 @@ func _assoc(_ src: Dictionary<String,MalVal>, _ mvs: Array<MalVal>)
         switch (mvs[pos], mvs[pos+1]) {
         case (MV.MalString(let k), let mv):
             d[k] = mv
+            // jmj Keyword
+        case (MV.MalKeyword(let k), let mv):
+            d[k] = mv
         default:
             throw MalError.General(msg: "Invalid _assoc call")
         }
@@ -129,6 +133,8 @@ func _dissoc(_ src: Dictionary<String,MalVal>, _ mvs: Array<MalVal>)
     var d = src
     for mv in mvs {
         switch mv {
+            // jmj Keyword
+        case MV.MalKeyword(let k): d.removeValue(forKey: k)
         case MV.MalString(let k): d.removeValue(forKey: k)
         default: throw MalError.General(msg: "Invalid _dissoc call")
         }

@@ -84,6 +84,7 @@ func read_string(_ rdr: Reader) throws -> MalVal {
     let matchStr = rdr.str[
             rdr.str.index(after: start)..<rdr.str.index(before: rdr.pos)]
 
+    // jmj - Keyword check?
     let s0 = matchStr.replacingOccurrences(of: "\\\\", with: "\u{029e}")
     let s1 = s0.replacingOccurrences(of: "\\\"", with: "\"")
     let s2 = s1.replacingOccurrences(of: "\\n", with: "\n")
@@ -127,7 +128,9 @@ func read_atom(_ rdr: Reader) throws -> MalVal {
         return try read_string(rdr)
     case ":":
         rdr.next()
-        return MalVal.MalString("\u{029e}\(read_token(rdr))")
+        // jmj - Keyword check
+//        return MalVal.MalString("\u{029e}\(read_token(rdr))")
+        return MalVal.MalKeyword(read_token(rdr))
     default:
         return try read_symbol(rdr)
     }
