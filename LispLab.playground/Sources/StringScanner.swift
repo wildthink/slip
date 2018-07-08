@@ -8,6 +8,8 @@
 //    Twitter: @danielemargutti
 //  Copyright © 2016 Daniele Margutti. All rights reserved.
 //
+//  https://github.com/malcommac/SwiftScanner#peekUpUntilInCharset
+//
 //  The MIT License (MIT)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
