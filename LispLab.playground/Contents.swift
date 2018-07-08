@@ -56,6 +56,7 @@ extension Token {
 class Reader {
 
     let token_guards = CharacterSet(charactersIn: ",(){}[] \t\n")
+    let symbol_starts = CharacterSet.letters
 
     var scanner: StringScanner
 
@@ -73,8 +74,18 @@ class Reader {
 
         case "a"..."z", "A"..."Z":
             if let token = try scanner.scan(upTo: token_guards) {
-                return Token(symbol: token)
+                return token.hasSuffix(":") ? Token(keyword: token) : Token(symbol: token)
             }
+        case ":":
+            try scanner.scanChar()
+            if symbol_starts.contains(try scanner.peekChar()) {
+                if let token = try scanner.scan(upTo: token_guards) {
+                    return Token(keyword: token)
+                }
+            } else {
+                return Token(symbol: ":")
+            }
+
         case "0"..."9":
             let num = try scanner.scanFloat()
             return num
@@ -194,7 +205,7 @@ class Printer {
 }
 
 
-var str = " (<= [1 -2.4] - foo, { a: 1 b: \"str\"})\n"
+var str = " (<= [1 -2.4] - foo, Bar { a: 1 :b \"str\"})\n"
 
 let rdr = Reader(str)
 let printer = Printer()
