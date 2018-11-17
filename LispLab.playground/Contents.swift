@@ -16,6 +16,55 @@ open class Environment {
     func evaluate(_ any: AnyHashable?) -> AnyHashable? {
         guard let any = any else { return nil }
 
+        switch any {
+        case let map as [AnyHashable:AnyHashable]:
+            var emap = [AnyHashable:AnyHashable]()
+            for (k, v) in map {
+                emap[k] = evaluate(v)
+            }
+            return emap
+
+        case let list as Sexpr<AnyHashable?>:
+            guard !list.isEmpty else { return list }
+            var elist = Sexpr<AnyHashable?>()
+            for v in list { elist.append(evaluate(v)) }
+            guard let op = elist.first as? String else { return nil }
+            return apply (op: op, list: list.suffix(from: 0))
+//                return elist
+
+        case let array as [AnyHashable?]:
+            var earray = [AnyHashable?]()
+            for v in array { earray.append(evaluate(v)!) }
+            return earray
+
+        case let token as Reader.Token:
+            switch token {
+            case .string(let s): return s
+            case .symbol(let s):
+                if let v = values[s] { return v }
+                return s
+            default:
+                return any
+            }
+        default:
+            return any
+        }
+    }
+
+    func apply (op: String, list: Slice<Sexpr<AnyHashable?>>) -> AnyHashable? {
+        switch op {
+        case "+":
+            var sum: Double = 0
+            for n in list {
+                guard let n = n as? Double else { return nil }
+                sum += n
+            }
+            return sum
+        default:
+            return nil
+        }
+    }
+/*
         if let map = any as? [AnyHashable:AnyHashable] {
             var emap = [AnyHashable:AnyHashable]()
             for (k, v) in map {
@@ -23,8 +72,8 @@ open class Environment {
             }
             return emap
         }
-        else if let list = any as? List<AnyHashable?> {
-            var elist = List<AnyHashable?>()
+        else if let list = any as? Sexpr<AnyHashable?> {
+            var elist = Sexpr<AnyHashable?>()
             for v in list { elist.append(evaluate(v)) }
             return elist
         }
@@ -46,7 +95,7 @@ open class Environment {
         else {
             return any
         }
-    }
+ */
 }
 
 var str = """
@@ -60,10 +109,10 @@ let printer = Printer()
 
 //try? rdr.read()
 
-while let token = try? rdr.read() {
-    guard let token = token else { break }
-    printer.pr(token)
-}
+//while let token = try? rdr.read() {
+//    guard let token = token else { break }
+//    printer.pr(token)
+//}
 
 //let sa = Array(str)
 //sa.count
@@ -77,11 +126,21 @@ x == y
 
 print("===============")
 
-let r2 = Reader("123.8_m/s")
+//let r2 = Reader("123.8_m/s")
+//
+//while let token = try? r2.read() {
+//    guard let token = token else { break }
+//    printer.pr(token)
+//}
+//
+//print("===============")
 
-while let token = try? r2.read() {
-    guard let token = token else { break }
-    printer.pr(token)
-}
+let env = Environment()
+let r3 = Reader("(+ 1 2 3 4.5)")
+let s3 = try! r3.read()!
+//Swift.print(s3)
 
-
+let sum = env.evaluate(s3) as! Sexpr<AnyHashable>
+let op = sum.first as? String
+Swift.print (op, sum)
+//printer.pr (

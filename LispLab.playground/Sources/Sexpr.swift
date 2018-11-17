@@ -1,6 +1,6 @@
 import Foundation
 
-public struct List<Element> {
+public struct Sexpr<Element> {
     public typealias ListType = [Element]
 
     public private(set) var array = ListType()
@@ -14,19 +14,19 @@ public struct List<Element> {
     }
 }
 
-extension List: Equatable where Element: Equatable {
-    public static func ==(lhs: List<Element>, rhs: List<Element>) -> Bool {
+extension Sexpr: Equatable where Element: Equatable {
+    public static func ==(lhs: Sexpr<Element>, rhs: Sexpr<Element>) -> Bool {
         return lhs.array.elementsEqual(rhs.array)
     }
 }
 
-extension List: Hashable where Element: Hashable {
+extension Sexpr: Hashable where Element: Hashable {
     public var hashValue: Int {
         return array.hashValue
     }
 }
 
-extension List: Collection {
+extension Sexpr: Collection {
 
     public typealias Index = ListType.Index
 
@@ -43,7 +43,7 @@ extension List: Collection {
     }
 }
 
-extension List: ExpressibleByArrayLiteral {
+extension Sexpr: ExpressibleByArrayLiteral {
 
     public typealias ArrayLiteralElement = Element
 

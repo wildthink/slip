@@ -49,12 +49,12 @@ open class Reader {
             let num = try scanner.scanFloat()
             let pc = try scanner.peekChar()
             if CharacterSet.letters.contains(pc), let unit_token = (try? read())! {
-                let list: List<AnyHashable> = [num, unit_token]
+                let list: Sexpr<AnyHashable> = [num, unit_token]
                 return list
             } else if pc == "_" {
-                try? scanner.scanChar()
+                let _ = try? scanner.scanChar()
                 if let unit_token = (try? read())! {
-                    let list: List<AnyHashable> = [num, unit_token]
+                    let list: Sexpr<AnyHashable> = [num, unit_token]
                     return list
                 } else {
                     return num
@@ -79,7 +79,7 @@ open class Reader {
         // Compound data structures read() recursively
         case "(":
             try scanner.scanChar();
-            var list = List<AnyHashable>()
+            var list = Sexpr<AnyHashable>()
             while let nob = try read() {
                 if let s = nob as? String, s == ")" { break }
                 list.append(nob)

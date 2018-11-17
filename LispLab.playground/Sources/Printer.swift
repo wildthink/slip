@@ -57,7 +57,7 @@ open class Printer {
             }
             _pr ("}", indent: indent)
         }
-        else if let list = any as? List<AnyHashable> {
+        else if let list = any as? Sexpr<AnyHashable> {
             _pr ("(")
             for v in list { pr(v, indent: indent + 1) }
             _pr (")", indent: indent)
