@@ -1,9 +1,31 @@
 import Foundation
 
-public struct Metadata: Hashable, CustomStringConvertible {
-    public let value: AnyHashable
+public struct Metadata: CustomStringConvertible {
+    public let value: Any
     public var description: String { return "(meta \(value))"}
 }
+
+public struct Symbol: CustomStringConvertible, Equatable, Hashable {
+    public let name: String
+
+    public init(_ value: String) {
+        self.name = value
+    }
+
+    public init(stringLiteral value: String) {
+        self.name = value
+    }
+
+    public var description: String { return name }
+    public var hashValue: Int { return name.hashValue }
+
+    public static func == (lhs: Symbol, rhs: Symbol) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
+}
+
+
+extension String: Error {}
 
 open class Reader {
 
@@ -16,7 +38,7 @@ open class Reader {
         scanner = StringScanner(s)
     }
 
-    open func read() throws -> AnyHashable? {
+    open func read() throws -> Any? {
 
         guard !scanner.isAtEnd else { return nil }
 
@@ -49,12 +71,12 @@ open class Reader {
             let num = try scanner.scanFloat()
             let pc = try scanner.peekChar()
             if CharacterSet.letters.contains(pc), let unit_token = (try? read())! {
-                let list: Sexpr<AnyHashable> = [num, unit_token]
+                let list: Sexpr<Any> = [num, unit_token]
                 return list
             } else if pc == "_" {
                 let _ = try? scanner.scanChar()
                 if let unit_token = (try? read())! {
-                    let list: Sexpr<AnyHashable> = [num, unit_token]
+                    let list: Sexpr<Any> = [num, unit_token]
                     return list
                 } else {
                     return num
@@ -79,7 +101,7 @@ open class Reader {
         // Compound data structures read() recursively
         case "(":
             try scanner.scanChar();
-            var list = Sexpr<AnyHashable>()
+            var list = Sexpr<Any>()
             while let nob = try read() {
                 if let s = nob as? String, s == ")" { break }
                 list.append(nob)
@@ -90,7 +112,7 @@ open class Reader {
 
         case "[":
             try scanner.scanChar();
-            var list = [AnyHashable]()
+            var list = [Any]()
             while let nob = try read() {
                 if let s = nob as? String, s == "]" { break }
                 list.append(nob)
@@ -101,13 +123,14 @@ open class Reader {
 
         case "{":
             try scanner.scanChar();
-            var map = [AnyHashable:AnyHashable]()
+            var map = [AnyHashable:Any]()
             while true {
                 let ch = try scanner.peekChar()
                 if ch == "}" { try scanner.scanChar(); return map }
-                if let k = try read(), let v = try read() {
-                    //                    guard v != "}" else { return } // throw
+                if let k = try read() as? AnyHashable, let v = try read() {
                     map[k] = v
+                } else {
+                    throw "ERROR in map at \(scanner.position)"
                 }
             }
             return map // ch
