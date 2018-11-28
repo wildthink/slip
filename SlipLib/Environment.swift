@@ -12,6 +12,11 @@ open class Environment {
     public init() {
     }
 
+    open func read(_ str: String) throws -> Any? {
+        let reader = Reader(str)
+        return try reader.read()
+    }
+
     open func evaluate(_ str: String) throws -> Any? {
         let reader = Reader(str)
         let e = try reader.read()
@@ -19,9 +24,9 @@ open class Environment {
     }
 
     open func evaluate(_ any: Any?) throws -> Any? {
-        guard let any = any else { return nil }
+        guard let base = any else { return nil }
 
-        let base = any
+        Swift.print(#function, base)
 
         switch base {
         case let map as [AnyHashable:Any]:

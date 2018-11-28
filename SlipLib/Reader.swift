@@ -38,6 +38,22 @@ open class Reader {
         scanner = StringScanner(s)
     }
 
+    public func scanNumber() throws -> Any {
+        let num = try scanner.scanFloat()
+//        var num = try scanner.scanInt()
+//        let c = try scanner.peekChar()
+//        if c == "." {
+//            let _ = try scanner.scanChar()
+//            if CharacterSet.decimalDigits.contains (try scanner.peekChar()) {
+//                let p = try scanner.scanInt()
+//                var d = Double(num)
+//                d = d + (1.0 / Double(p))
+//                return d
+//            }
+//        }
+        return num
+    }
+
     open func read() throws -> Any? {
 
         guard !scanner.isAtEnd else { return nil }
@@ -69,6 +85,7 @@ open class Reader {
 
         case "0"..."9":
             let num = try scanner.scanFloat()
+//            let num = try scanNumber()
             let pc = try scanner.peekChar()
             if CharacterSet.letters.contains(pc), let unit_token = (try? read())! {
                 let list: Sexpr<Any> = [num, unit_token]

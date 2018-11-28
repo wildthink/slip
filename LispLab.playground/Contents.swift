@@ -1,4 +1,5 @@
-import Cocoa
+//import Cocoa
+import SlipLib
 
 // https://github.com/malcommac/SwiftScanner#peekUpUntilInCharset
 // http://www.buildyourownlisp.com/contents
@@ -61,6 +62,10 @@ env.setf("cat") { (sym, list) -> Any? in
 let r3 = Reader("(+ 1 2 3 4.5)")
 let s3 = try! r3.read()!
 //Swift.print(s3)
+
+if let result = try env.read("23") {
+    Swift.print(type(of: result), result)
+}
 
 if let sum = try env.evaluate(s3) {
     Swift.print (sum)

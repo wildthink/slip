@@ -13,7 +13,35 @@
 		96660ED620EF18B500554A7F /* types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660ED120EF18B500554A7F /* types.swift */; };
 		96660ED720EF18B500554A7F /* reader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660ED220EF18B500554A7F /* reader.swift */; };
 		96660ED820EF18B500554A7F /* env.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660ED320EF18B500554A7F /* env.swift */; };
+		96E13D9C21AEDDC500232F39 /* SlipLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E13D9321AEDDC500232F39 /* SlipLib.framework */; };
+		96E13DA121AEDDC500232F39 /* SlipLibTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DA021AEDDC500232F39 /* SlipLibTests.swift */; };
+		96E13DA321AEDDC500232F39 /* SlipLib.h in Headers */ = {isa = PBXBuildFile; fileRef = 96E13D9521AEDDC500232F39 /* SlipLib.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		96E13DAF21AEDDE200232F39 /* StringScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAA21AEDDE100232F39 /* StringScanner.swift */; };
+		96E13DB021AEDDE200232F39 /* Reader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAB21AEDDE100232F39 /* Reader.swift */; };
+		96E13DB121AEDDE200232F39 /* Sexpr.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAC21AEDDE200232F39 /* Sexpr.swift */; };
+		96E13DB221AEDDE200232F39 /* Printer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAD21AEDDE200232F39 /* Printer.swift */; };
+		96E13DB321AEDDE200232F39 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAE21AEDDE200232F39 /* Environment.swift */; };
+		96E13DBA21AEF94600232F39 /* UniversalFramework_Framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */; };
+		96E13DBB21AEF94600232F39 /* UniversalFramework_Framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */; };
+		96E13DBC21AEF94600232F39 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB621AEF94600232F39 /* LICENSE */; };
+		96E13DBD21AEF94600232F39 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB621AEF94600232F39 /* LICENSE */; };
+		96E13DBE21AEF94600232F39 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB721AEF94600232F39 /* README.md */; };
+		96E13DBF21AEF94600232F39 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB721AEF94600232F39 /* README.md */; };
+		96E13DC021AEF94600232F39 /* UniversalFramework_Base.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB821AEF94600232F39 /* UniversalFramework_Base.xcconfig */; };
+		96E13DC121AEF94600232F39 /* UniversalFramework_Base.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB821AEF94600232F39 /* UniversalFramework_Base.xcconfig */; };
+		96E13DC221AEF94600232F39 /* UniversalFramework_Test.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */; };
+		96E13DC321AEF94600232F39 /* UniversalFramework_Test.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		96E13D9D21AEDDC500232F39 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96660EB120EE2D1000554A7F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96E13D9221AEDDC500232F39;
+			remoteInfo = SlipLib;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		96660EB720EE2D1000554A7F /* CopyFiles */ = {
@@ -36,6 +64,22 @@
 		96660ED220EF18B500554A7F /* reader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = reader.swift; sourceTree = "<group>"; };
 		96660ED320EF18B500554A7F /* env.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = env.swift; sourceTree = "<group>"; };
 		96660F3620F079AC00554A7F /* LispLab.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = LispLab.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		96E13D9321AEDDC500232F39 /* SlipLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SlipLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		96E13D9521AEDDC500232F39 /* SlipLib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SlipLib.h; sourceTree = "<group>"; };
+		96E13D9621AEDDC500232F39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		96E13D9B21AEDDC500232F39 /* SlipLibTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SlipLibTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		96E13DA021AEDDC500232F39 /* SlipLibTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlipLibTests.swift; sourceTree = "<group>"; };
+		96E13DA221AEDDC500232F39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		96E13DAA21AEDDE100232F39 /* StringScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringScanner.swift; sourceTree = "<group>"; };
+		96E13DAB21AEDDE100232F39 /* Reader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reader.swift; sourceTree = "<group>"; };
+		96E13DAC21AEDDE200232F39 /* Sexpr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sexpr.swift; sourceTree = "<group>"; };
+		96E13DAD21AEDDE200232F39 /* Printer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Printer.swift; sourceTree = "<group>"; };
+		96E13DAE21AEDDE200232F39 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = UniversalFramework_Framework.xcconfig; sourceTree = "<group>"; };
+		96E13DB621AEF94600232F39 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		96E13DB721AEF94600232F39 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		96E13DB821AEF94600232F39 /* UniversalFramework_Base.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = UniversalFramework_Base.xcconfig; sourceTree = "<group>"; };
+		96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = UniversalFramework_Test.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,14 +90,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		96E13D9021AEDDC500232F39 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96E13D9821AEDDC500232F39 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13D9C21AEDDC500232F39 /* SlipLib.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		96660EB020EE2D1000554A7F = {
 			isa = PBXGroup;
 			children = (
+				96E13DB421AEF94600232F39 /* xcconfigs */,
 				96660F3620F079AC00554A7F /* LispLab.playground */,
 				96660EBB20EE2D1000554A7F /* src */,
+				96E13D9421AEDDC500232F39 /* SlipLib */,
+				96E13D9F21AEDDC500232F39 /* SlipLibTests */,
 				96660EBA20EE2D1000554A7F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +124,8 @@
 			isa = PBXGroup;
 			children = (
 				96660EB920EE2D1000554A7F /* slip */,
+				96E13D9321AEDDC500232F39 /* SlipLib.framework */,
+				96E13D9B21AEDDC500232F39 /* SlipLibTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,7 +143,53 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		96E13D9421AEDDC500232F39 /* SlipLib */ = {
+			isa = PBXGroup;
+			children = (
+				96E13DAE21AEDDE200232F39 /* Environment.swift */,
+				96E13DAD21AEDDE200232F39 /* Printer.swift */,
+				96E13DAB21AEDDE100232F39 /* Reader.swift */,
+				96E13DAC21AEDDE200232F39 /* Sexpr.swift */,
+				96E13DAA21AEDDE100232F39 /* StringScanner.swift */,
+				96E13D9521AEDDC500232F39 /* SlipLib.h */,
+				96E13D9621AEDDC500232F39 /* Info.plist */,
+			);
+			path = SlipLib;
+			sourceTree = "<group>";
+		};
+		96E13D9F21AEDDC500232F39 /* SlipLibTests */ = {
+			isa = PBXGroup;
+			children = (
+				96E13DA021AEDDC500232F39 /* SlipLibTests.swift */,
+				96E13DA221AEDDC500232F39 /* Info.plist */,
+			);
+			path = SlipLibTests;
+			sourceTree = "<group>";
+		};
+		96E13DB421AEF94600232F39 /* xcconfigs */ = {
+			isa = PBXGroup;
+			children = (
+				96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */,
+				96E13DB621AEF94600232F39 /* LICENSE */,
+				96E13DB721AEF94600232F39 /* README.md */,
+				96E13DB821AEF94600232F39 /* UniversalFramework_Base.xcconfig */,
+				96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */,
+			);
+			path = xcconfigs;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		96E13D8E21AEDDC500232F39 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13DA321AEDDC500232F39 /* SlipLib.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		96660EB820EE2D1000554A7F /* slip */ = {
@@ -99,18 +209,60 @@
 			productReference = 96660EB920EE2D1000554A7F /* slip */;
 			productType = "com.apple.product-type.tool";
 		};
+		96E13D9221AEDDC500232F39 /* SlipLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96E13DA821AEDDC500232F39 /* Build configuration list for PBXNativeTarget "SlipLib" */;
+			buildPhases = (
+				96E13D8E21AEDDC500232F39 /* Headers */,
+				96E13D8F21AEDDC500232F39 /* Sources */,
+				96E13D9021AEDDC500232F39 /* Frameworks */,
+				96E13D9121AEDDC500232F39 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SlipLib;
+			productName = SlipLib;
+			productReference = 96E13D9321AEDDC500232F39 /* SlipLib.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		96E13D9A21AEDDC500232F39 /* SlipLibTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96E13DA921AEDDC500232F39 /* Build configuration list for PBXNativeTarget "SlipLibTests" */;
+			buildPhases = (
+				96E13D9721AEDDC500232F39 /* Sources */,
+				96E13D9821AEDDC500232F39 /* Frameworks */,
+				96E13D9921AEDDC500232F39 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96E13D9E21AEDDC500232F39 /* PBXTargetDependency */,
+			);
+			name = SlipLibTests;
+			productName = SlipLibTests;
+			productReference = 96E13D9B21AEDDC500232F39 /* SlipLibTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		96660EB120EE2D1000554A7F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1000;
+				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = "Jason Jobe";
 				TargetAttributes = {
 					96660EB820EE2D1000554A7F = {
 						CreatedOnToolsVersion = 10.0;
+					};
+					96E13D9221AEDDC500232F39 = {
+						CreatedOnToolsVersion = 10.1;
+					};
+					96E13D9A21AEDDC500232F39 = {
+						CreatedOnToolsVersion = 10.1;
 					};
 				};
 			};
@@ -127,9 +279,38 @@
 			projectRoot = "";
 			targets = (
 				96660EB820EE2D1000554A7F /* slip */,
+				96E13D9221AEDDC500232F39 /* SlipLib */,
+				96E13D9A21AEDDC500232F39 /* SlipLibTests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		96E13D9121AEDDC500232F39 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13DC021AEF94600232F39 /* UniversalFramework_Base.xcconfig in Resources */,
+				96E13DBE21AEF94600232F39 /* README.md in Resources */,
+				96E13DC221AEF94600232F39 /* UniversalFramework_Test.xcconfig in Resources */,
+				96E13DBC21AEF94600232F39 /* LICENSE in Resources */,
+				96E13DBA21AEF94600232F39 /* UniversalFramework_Framework.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96E13D9921AEDDC500232F39 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13DC121AEF94600232F39 /* UniversalFramework_Base.xcconfig in Resources */,
+				96E13DBF21AEF94600232F39 /* README.md in Resources */,
+				96E13DC321AEF94600232F39 /* UniversalFramework_Test.xcconfig in Resources */,
+				96E13DBD21AEF94600232F39 /* LICENSE in Resources */,
+				96E13DBB21AEF94600232F39 /* UniversalFramework_Framework.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		96660EB520EE2D1000554A7F /* Sources */ = {
@@ -145,7 +326,35 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		96E13D8F21AEDDC500232F39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13DB221AEDDE200232F39 /* Printer.swift in Sources */,
+				96E13DB121AEDDE200232F39 /* Sexpr.swift in Sources */,
+				96E13DB021AEDDE200232F39 /* Reader.swift in Sources */,
+				96E13DAF21AEDDE200232F39 /* StringScanner.swift in Sources */,
+				96E13DB321AEDDE200232F39 /* Environment.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96E13D9721AEDDC500232F39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96E13DA121AEDDC500232F39 /* SlipLibTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		96E13D9E21AEDDC500232F39 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96E13D9221AEDDC500232F39 /* SlipLib */;
+			targetProxy = 96E13D9D21AEDDC500232F39 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		96660EBE20EE2D1000554A7F /* Debug */ = {
@@ -283,6 +492,120 @@
 			};
 			name = Release;
 		};
+		96E13DA421AEDDC500232F39 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = SlipLib/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.wildthink.osx.SlipLib;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iOS";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		96E13DA521AEDDC500232F39 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 96E13DB521AEF94600232F39 /* UniversalFramework_Framework.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = SlipLib/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.wildthink.osx.SlipLib;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iOS";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		96E13DA621AEDDC500232F39 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8S7Y6KVRU5;
+				INFOPLIST_FILE = SlipLibTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.wildthink.osx.SlipLibTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		96E13DA721AEDDC500232F39 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 96E13DB921AEF94600232F39 /* UniversalFramework_Test.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8S7Y6KVRU5;
+				INFOPLIST_FILE = SlipLibTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.wildthink.osx.SlipLibTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -300,6 +623,24 @@
 			buildConfigurations = (
 				96660EC120EE2D1000554A7F /* Debug */,
 				96660EC220EE2D1000554A7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96E13DA821AEDDC500232F39 /* Build configuration list for PBXNativeTarget "SlipLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96E13DA421AEDDC500232F39 /* Debug */,
+				96E13DA521AEDDC500232F39 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96E13DA921AEDDC500232F39 /* Build configuration list for PBXNativeTarget "SlipLibTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96E13DA621AEDDC500232F39 /* Debug */,
+				96E13DA721AEDDC500232F39 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
