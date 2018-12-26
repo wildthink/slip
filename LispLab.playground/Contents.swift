@@ -83,4 +83,43 @@ if let result = try? env.evaluate("(cat 3 4 8.9)")! {
     Swift.print("cat", result)
 }
 
+extension Dictionary where Key == Reader.Token {
+    subscript (_ key: String) -> Value? {
+        let t = Reader.Token.keyword(key)
+        return self[t]
+    }
+}
+
+//extension Dictionary where Key == AnyHashable {
+//    subscript (_ key: String) -> Value? {
+//        return self[key]
+//    }
+//}
+
+do {
+    let map = try env.read("{a: 1 :b 2} " ) as! [Reader.Token:Any]
+        // as! NSDictionary
+    Swift.print ("token?", map.first!.key is NSString)
+//    let f = map.first!.key
+//    let b = map.keys.contains("b")
+    Swift.print ("a value?", map, map["a"])
+    Swift.print ("b value?", map, map["b"])
+//    Swift.print (map.keys, f, type(of: f))
+}
+catch let e {
+    Swift.print (e)
+}
+
+let t1 = Reader.Token.keyword("a")
+let t2 = Reader.Token.symbol("a")
+
+let hk = AnyHashable("a")
+
+Swift.print ("a".hashValue, t1.hashValue, t2.hashValue, t1.hashValue == t2.hashValue)
+
+let dict:[AnyHashable:Any] = ["a": 1, "b": 2]
+Swift.print (dict[hk])
+
+Swift.print ("EOF", #line)
+
 //printer.pr (

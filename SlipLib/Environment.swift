@@ -26,7 +26,7 @@ open class Environment {
     open func evaluate(_ any: Any?) throws -> Any? {
         guard let base = any else { return nil }
 
-        Swift.print(#function, base)
+//        Swift.print(#function, base)
 
         switch base {
         case let map as [AnyHashable:Any]:

@@ -18,18 +18,34 @@ public struct Symbol: CustomStringConvertible, Equatable, Hashable {
 
     public var description: String { return name }
     public var hashValue: Int { return name.hashValue }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
 
     public static func == (lhs: Symbol, rhs: Symbol) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
 }
 
+extension Sequence {
+    public func contains(_ v: Optional<Element>) -> Bool {
+        guard let e = v else { return false }
+        return self.contains(e)
+    }
+}
+
+extension CharacterSet {
+    public func contains(_ v: Optional<Element>) -> Bool {
+        guard let e = v else { return false }
+        return self.contains(e)
+    }
+}
 
 extension String: Error {}
 
 open class Reader {
 
-    let token_guards = CharacterSet(charactersIn: ",(){}[] \t\n")
+    let token_guards = CharacterSet(charactersIn: ":,(){}[] \t\n")
     let symbol_starts = CharacterSet.letters
 
     var scanner: StringScanner
@@ -58,17 +74,22 @@ open class Reader {
 
         guard !scanner.isAtEnd else { return nil }
 
-        try scanner.skipWhitespace()
-        let c = try scanner.peekChar()
+        scanner.skipWhitespace()
+        guard let c = scanner.peekChar() else { return nil }
         switch  c {
 
         case "a"..."z", "A"..."Z":
             if let token = try scanner.scan(upTo: token_guards) {
-                return token.hasSuffix(":") ? Token.keyword(token) : Token.symbol(token)
+                if let p = scanner.peekChar(), p == ":" {
+                    try scanner.scanChar()
+                    return Token.keyword(token)
+                }
+                return Token.symbol(token)
+//                return token.hasSuffix(":") ? Token.keyword(token) : Token.symbol(token)
             }
         case ":":
             try scanner.scanChar()
-            if symbol_starts.contains(try scanner.peekChar()) {
+            if symbol_starts.contains(scanner.peekChar()) {
                 if let token = try scanner.scan(upTo: token_guards) {
                     return Token.keyword(token)
                 }
@@ -86,7 +107,7 @@ open class Reader {
         case "0"..."9":
             let num = try scanner.scanFloat()
 //            let num = try scanNumber()
-            let pc = try scanner.peekChar()
+            let pc = scanner.peekChar()
             if CharacterSet.letters.contains(pc), let unit_token = (try? read())! {
                 let list: Sexpr<Any> = [num, unit_token]
                 return list
@@ -103,7 +124,7 @@ open class Reader {
 
         case "-":
             try scanner.scanChar()
-            if CharacterSet.decimalDigits.contains(try scanner.peekChar()) {
+            if CharacterSet.decimalDigits.contains(scanner.peekChar()) {
                 return -(try scanner.scanFloat())
             } else {
                 return Token.symbol("-")
@@ -140,11 +161,11 @@ open class Reader {
 
         case "{":
             try scanner.scanChar();
-            var map = [AnyHashable:Any]()
+            var map = [Token:Any]()
             while true {
-                let ch = try scanner.peekChar()
+                let ch = scanner.peekChar()
                 if ch == "}" { try scanner.scanChar(); return map }
-                if let k = try read() as? AnyHashable, let v = try read() {
+                if let k = try read() as? Token, let v = try read() {
                     map[k] = v
                 } else {
                     throw "ERROR in map at \(scanner.position)"
@@ -172,6 +193,9 @@ extension Reader {
         case string(String)
         case keyword(String)
 
+//        public init(symbol s: String) {
+//            self.
+//        }
         public var description: String {
             switch self {
             case .symbol(let v): return v
@@ -187,30 +211,37 @@ extension Reader {
             case .keyword(let v): return v.hashValue
             }
         }
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(hashValue)
+        }
+
     }
 }
 
 extension StringScanner {
 
-    public func peekChar(_ offset: Int = 0) throws -> UnicodeScalar {
+    public func peekChar(_ offset: Int = 0) -> UnicodeScalar? {
         guard self.position != self.string.endIndex else {
-            throw StringScannerError.eof
+//            throw StringScannerError.eof
+            return nil
         }
         return self.string[self.position]
     }
 
-    public func isNext(char: UnicodeScalar) throws -> Bool {
+    public func isNext(char: UnicodeScalar) -> Bool {
         guard self.position != self.string.endIndex else {
-            throw StringScannerError.eof
+//            throw StringScannerError.eof
+            return false
         }
         return char == self.string[self.position]
     }
 
-    public func skipWhitespace() throws {
-        var ch = try peekChar()
-        while CharacterSet.whitespacesAndNewlines.contains(ch) {
-            try scanChar()
-            ch = try peekChar()
+    public func skipWhitespace() {
+        do {
+            guard let ch = peekChar(),
+                  CharacterSet.whitespacesAndNewlines.contains(ch)
+            else { return }
+            let _ = try? scanChar()
         }
     }
 }
