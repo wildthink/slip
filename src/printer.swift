@@ -1,43 +1,51 @@
 
-func pr_str(_ obj: MalVal, _ print_readably: Bool = true) -> String {
-    switch obj {
-    case MalVal.MalList(let lst, _):
-        let elems = lst.map { pr_str($0, print_readably) }
-        return "(" + elems.joined(separator: " ")  + ")"
-    case MalVal.MalVector(let lst, _):
-        let elems = lst.map { pr_str($0, print_readably) }
-        return "[" + elems.joined(separator: " ")  + "]"
-    case MalVal.MalHashMap(let dict, _):
-        let elems = dict.map {
-            pr_str(MalVal.MalString($0), print_readably) +
-            " " + pr_str($1, print_readably)
-        }
-        return "{" + elems.joined(separator: " ")  + "}"
-    case MalVal.MalKeyword(let str):
-        return ":" + str
-    case MalVal.MalString(let str):
+import Foundation
+
+func pr_str(_ input: MalData, print_readably: Bool) -> String {
+    switch input.dataType {
+    case .Symbol:
+        let symbol = input as! Symbol
+        return symbol.name
+    case .Number:
+        let number = input as! Number
+        return String(number)
+    case .True:
+        return "true"
+    case .False:
+        return "false"
+    case .Nil:
+        return  "nil"
+    case .Keyword:
+        let keyword = input as! String
+        return keyword.replacingCharacters(in: keyword.startIndex...keyword.startIndex, with: ":")
+    case .String:
+        let string = input as! String
         if print_readably {
-            let s1 = str.replacingOccurrences(of: "\\", with: "\\\\")
-            let s2 = s1.replacingOccurrences(of: "\"", with: "\\\"")
-            let s3 = s2.replacingOccurrences(of: "\n", with: "\\n")
-            return "\"" + s3 + "\""
+            return "\"" + string.replacingOccurrences(of: "\\", with: "\\\\")
+                                .replacingOccurrences(of: "\"", with: "\\\"")
+                                .replacingOccurrences(of: "\n", with: "\\n") + "\""
         } else {
-            return str
+            return string
         }
-    case MalVal.MalSymbol(let str):
-        return str
-    case MalVal.MalInt(let i): return String(i)
-    case MalVal.MalFloat(let f): return String(f)
-    case MalVal.MalNil:        return "nil"
-    case MalVal.MalFalse:      return "false"
-    case MalVal.MalTrue:       return "true"
-    case MalVal.MalFunc(_, nil, _, _, _, _):
-        return "#<native function>"
-    case MalVal.MalFunc(_, let ast, _, let params, _, _):
-        return "(fn* \(pr_str(params![0])) \(pr_str(ast![0])))"
-    case MalVal.MalAtom(let ma):
-        return "(atom \(pr_str(ma.val, print_readably)))"
-//    default:
-//        return String(describing:obj)
+    case .List:
+        let list = input as! List<MalData>
+        let stringOfElements = list.map { pr_str($0, print_readably: print_readably) }.joined(separator: " ")
+        return "(" + stringOfElements + ")"
+    case .Vector:
+        let vector = input as! Vector<MalData>
+        let stringOfElements = vector.map { pr_str($0, print_readably: print_readably) }.joined(separator: " ")
+        return "[" + stringOfElements + "]"
+    case .HashMap:
+        let hashMap = input as! [String: MalData]
+        let stringOfElements = hashMap.map { (key, value) in
+            pr_str(key, print_readably: print_readably) + " " + pr_str(value, print_readably: print_readably)
+        }.joined(separator: " ")
+        return "{" + stringOfElements + "}"
+    case .Atom:
+        return pr_str("(atom \((input as! Atom).value))", print_readably: false)
+    case .Function:
+        return "#<function>"
+    default:
+        return "error type!"
     }
 }

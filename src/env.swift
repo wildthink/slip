@@ -1,89 +1,43 @@
+
+import Foundation
+
 class Env {
-    var outer: Env? = nil
-    var data: Dictionary<String, MalVal> = [:]
-
-    init(_ outer: Env? = nil, binds: MalVal? = nil,
-                              exprs: MalVal? = nil) throws {
+    let outer: Env?
+    var data: [String: MalData] = [:]
+    
+    init(outer: Env) {
         self.outer = outer
-
-        if binds != nil {
-            var bs = Array<MalVal>(), es = Array<MalVal>()
-            //print("binds: \(binds), exprs: \(exprs)")
-            switch (binds!, exprs!) {
-            case (MalVal.MalList(let l1, _), MalVal.MalList(let l2, _)):
-                bs = l1; es = l2
-            case (MalVal.MalVector(let l1, _), MalVal.MalList(let l2, _)):
-                bs = l1; es = l2
-            default:
-                throw MalError.General(msg: "invalid Env init call")
+    }
+    init() {
+        outer = nil
+    }
+    init(binds: [Symbol], exprs: [MalData], outer: Env) {
+        self.outer = outer
+        self.data = [:]
+        for i in binds.indices {
+            if binds[i].name == "&" {
+                data.updateValue(List(exprs[i..<exprs.count]), forKey: binds[i+1].name)
+                return
             }
-
-            var pos = bs.startIndex
-
-            bhandle:
-            while pos < bs.endIndex {
-                let b = bs[pos]
-                switch b {
-                case MalVal.MalSymbol("&"):
-                    switch bs[bs.index(after: pos)] {
-                    case MalVal.MalSymbol(let sym):
-                        if pos < es.endIndex {
-                            let slc = es[pos..<es.endIndex]
-                            data[sym] = list(Array(slc))
-                        } else {
-                            data[sym] = list([])
-                        }
-                        break bhandle
-                    default:
-                        throw MalError.General(msg: "Env invalid varargs")
-                    }
-                case MalVal.MalSymbol(let sym):
-                    let e = es[pos]
-                    data[sym] = e
-                default:
-                    throw MalError.General(msg: "Env binds has non-symbol")
-                }
-                pos = bs.index(after: pos)
-            }
+            data.updateValue(exprs[i], forKey: binds[i].name)
         }
     }
-
-    func find(_ key: MalVal) throws -> Env? {
-        switch key {
-        case MalVal.MalSymbol(let str):
-            if data[str] != nil {
-                return self
-            } else if outer != nil {
-                return try outer!.find(key)
-            } else {
-                return nil
-            }
-        default:
-            throw MalError.General(msg: "invalid Env.find call")
+    
+    func set(_ value: MalData, forKey key:Symbol) {
+        data.updateValue(value, forKey: key.name)
+    }
+    func find(_ key: Symbol) -> Env? {
+        if let _ = data[key.name] {
+            return self
+        } else  {
+            return outer?.find(key)
         }
     }
-
-    func get(_ key: MalVal) throws -> MalVal {
-        switch key {
-        case MalVal.MalSymbol(let str):
-            let env = try self.find(key)
-            if env == nil {
-                throw MalError.General(msg: "'\(str)' not found")
-            }
-            return env!.data[str]!
-        default:
-            throw MalError.General(msg: "invalid Env.find call")
-        }
-    }
-
-    @discardableResult
-    func set(_ key: MalVal, _ val: MalVal) throws -> MalVal {
-        switch key {
-        case MalVal.MalSymbol(let str):
-            data[str] = val
-            return val
-        default:
-            throw MalError.General(msg: "invalid Env.find call")
+    func get(forKey key: Symbol) throws -> MalData {
+        if let env = find(key), let value = env.data[key.name] {
+            return value
+        } else {
+            throw MalError.SymbolNotFound(key)
         }
     }
 }

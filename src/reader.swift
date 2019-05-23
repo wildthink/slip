@@ -1,215 +1,147 @@
-let token_delim: Set<Character> = [
-    ";", ",", "\"", "`", " ", "\n", "{", "}", "(", ")", "[", "]"
-]
 
-let int_char: Set<Character> = [
-    "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-]
+import Foundation
 
-let float_char: Set<Character> = [
-    ".", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-]
-
-let whitespace: Set<Character> = [" ", "\t", "\n", ","]
-
-class Reader {
-    var str: String
-    var pos: String.Index
-    init(_ str: String) {
-        self.str = str
-        pos = str.startIndex
+struct Reader {
+    let tokens: [String]
+    var position = 0
+    
+    init(tokens: [String]) {
+        self.tokens = tokens
     }
-    func next() { pos = str.index(after: pos) }
-}
-
-func read_int(_ rdr: Reader) -> MalVal {
-    let start = rdr.pos
-    var cidx = rdr.pos
-    while cidx < rdr.str.endIndex {
-        if !int_char.contains(rdr.str[cidx]) { break }
-        cidx = rdr.str.index(after: cidx)
-        rdr.pos = cidx
-    }
-//    let matchStr = rdr.str.substring(with: start..<rdr.pos)  jmj
-    let matchStr = rdr.str[start..<rdr.pos]
-    if matchStr == "-" {
-        return MalVal.MalSymbol("-")
-    } else {
-        return MalVal.MalInt(Int(matchStr)!)
-    }
-}
-
-func skip_whitespace_and_comments(_ rdr: Reader) {
-    var in_comment = false
-    var cidx = rdr.pos
-    while cidx < rdr.str.endIndex {
-        rdr.pos = cidx
-        if in_comment {
-            if rdr.str[rdr.pos] == "\n" {
-                in_comment = false
-            }
-        } else if rdr.str[rdr.pos] == ";" {
-            in_comment = true
-        } else {
-            if !whitespace.contains(rdr.str[rdr.pos]) { break }
+    
+    mutating func next() -> String? {
+        guard tokens.indices.contains(position) else {
+            return nil
         }
-        cidx = rdr.str.index(after: cidx)
+        position += 1
+        return tokens[position - 1]
     }
-}
-
-func read_string(_ rdr: Reader) throws -> MalVal {
-    let start = rdr.pos
-    var escaped = false
-    if rdr.str[rdr.pos] != "\"" {
-        throw MalError.Reader(msg: "read_string call on non-string")
-    }
-    var cidx = rdr.str.index(after: rdr.pos)
-    while cidx < rdr.str.endIndex {
-        rdr.pos = rdr.str.index(after: cidx)
-        if escaped {
-            escaped = false
-            cidx = rdr.pos
-            continue
+    
+    func peak() -> String? {
+        guard tokens.indices.contains(position) else {
+            return nil
         }
-        if rdr.str[cidx] == "\\" { escaped = true }
-        if rdr.str[cidx] == "\"" { break }
-        cidx = rdr.pos
+        return tokens[position]
     }
-    if rdr.pos > rdr.str.endIndex {
-        throw MalError.Reader(msg: "Expected '\"', got EOF")
+    
+    mutating func pass() {
+        guard tokens.indices.contains(position) else {
+            return
+        }
+        position += 1
     }
-//    jmj let matchStr = rdr.str.substring(with:
-//        rdr.str.index(after: start)..<rdr.str.index(before: rdr.pos))
-
-    let matchStr = rdr.str[
-            rdr.str.index(after: start)..<rdr.str.index(before: rdr.pos)]
-
-    // jmj - Keyword check?
-    let s0 = matchStr.replacingOccurrences(of: "\\\\", with: "\u{029e}")
-    let s1 = s0.replacingOccurrences(of: "\\\"", with: "\"")
-    let s2 = s1.replacingOccurrences(of: "\\n", with: "\n")
-    let s3 = s2.replacingOccurrences(of: "\u{029e}", with: "\\")
-    return MalVal.MalString(s3)
-}
-
-func read_token(_ rdr: Reader) -> String {
-    let start = rdr.pos
-    var cidx = rdr.pos
-    while cidx < rdr.str.endIndex {
-        rdr.pos = cidx
-        if token_delim.contains(rdr.str[cidx]) { break }
-        cidx = rdr.str.index(after: cidx)
-        rdr.pos = cidx
-    }
-//    return rdr.str.substring(with: start..<rdr.pos) jmj
-    return String(rdr.str[start..<rdr.pos])
-}
-
-func read_symbol(_ rdr: Reader) throws -> MalVal {
-   let tok = read_token(rdr)
-    switch tok {
-        case "nil": return MalVal.MalNil
-        case "true": return MalVal.MalTrue
-        case "false": return MalVal.MalFalse
-        default: return MalVal.MalSymbol(tok)
-    }
-}
-
-func read_atom(_ rdr: Reader) throws -> MalVal {
-    if rdr.str.count == 0 {
-        throw MalError.Reader(msg: "Empty string passed to read_atom")
-    }
-    switch rdr.str[rdr.pos] {
-    case "-" where !int_char.contains(rdr.str[rdr.str.index(after: rdr.pos)]):
-        return try read_symbol(rdr)
-    case let c where int_char.contains(c):
-        return read_int(rdr)
-    case "\"":
-        return try read_string(rdr)
-    case ":":
-        rdr.next()
-        // jmj - Keyword check
-//        return MalVal.MalString("\u{029e}\(read_token(rdr))")
-        return MalVal.MalKeyword(read_token(rdr))
-    default:
-        return try read_symbol(rdr)
-    }
-}
-
-func read_list(_ rdr: Reader, start: Character = "(", end: Character = ")") throws -> Array<MalVal> {
-    if rdr.str[rdr.pos] != start {
-        throw MalError.Reader(msg: "expected '\(start)'")
-    }
-    rdr.next()
-    var lst: [MalVal] = []
-    while rdr.pos < rdr.str.endIndex {
-        if (rdr.str[rdr.pos] == end) { break }
-        lst.append(try read_form(rdr))
-    }
-    if rdr.pos >= rdr.str.endIndex {
-        throw MalError.Reader(msg: "Expected '\(end)', got EOF")
-    }
-    rdr.next()
-    return lst
-}
-
-func read_form(_ rdr: Reader) throws -> MalVal {
-    if rdr.str.count == 0 {
-        throw MalError.Reader(msg: "Empty string passed to read_form")
-    }
-    //print("read_form: \(rdr.pos): \(rdr.str[rdr.pos])")
-    skip_whitespace_and_comments(rdr)
-    var res: MalVal
-    switch rdr.str[rdr.pos] {
-    // reader macros/transforms
-    case "'":
-        rdr.next()
-        return list([MalVal.MalSymbol("quote"), try read_form(rdr)])
-    case "`":
-        rdr.next()
-        return list([MalVal.MalSymbol("quasiquote"), try read_form(rdr)])
-    case "~":
-        switch rdr.str[rdr.str.index(after: rdr.pos)] {
-        case "@":
-            rdr.next()
-            rdr.next()
-            return list([MalVal.MalSymbol("splice-unquote"),
-                         try read_form(rdr)])
+    
+    mutating func read_form() throws -> MalData {
+        guard let token = peak() else { throw MalError.Error }
+        switch token {
+        case "(", "[", "{":
+            return try read_list(startWith: token)
+        case "'", "`", "~", "~@", "@":
+            let readerMacros = ["'": "quote",
+                                "`": "quasiquote",
+                                "~": "unquote",
+                                "~@": "splice-unquote",
+                                "@": "deref"]
+            pass() // pass the mark
+            return try [Symbol(readerMacros[token]!), read_form()]
+        case "^":
+            pass() // pass the mark
+            let meta = try read_form()
+            return try [Symbol("with-meta"), read_form(), meta]
         default:
-            rdr.next()
-            return list([MalVal.MalSymbol("unquote"),
-                         try read_form(rdr)])
+            return try read_atom()
         }
-    case "^":
-        rdr.next()
-        let meta = try read_form(rdr)
-        return list([MalVal.MalSymbol("with-meta"),
-                     try read_form(rdr),
-                     meta])
-    case "@":
-        rdr.next()
-        return list([MalVal.MalSymbol("deref"),
-                     try read_form(rdr)])
-
-    // list
-    case "(": res = list(try read_list(rdr))
-    case ")": throw MalError.Reader(msg: "unexpected ')'")
-
-    // vector
-    case "[": res = vector(try read_list(rdr, start: "[", end: "]"))
-    case "]": throw MalError.Reader(msg: "unexpected ']'")
-
-    // hash-map
-    case "{": res = try hash_map(try read_list(rdr, start: "{", end: "}"))
-    case "}": throw MalError.Reader(msg: "unexpected '}'")
-
-    // atom
-    default: res = try read_atom(rdr)
     }
-    skip_whitespace_and_comments(rdr)
-    return res
+    
+    
+    mutating func read_list(startWith leftParen: String) throws -> MalData {
+        pass() // pass the left paren
+        defer {
+            pass() // pass the right paren
+        }
+        
+        var list: [MalData] = []
+        while ![")", "]", "}"].contains(peak())  {
+            guard peak() != nil else {
+                throw MalError.ParensMismatch
+            }
+            list.append(try read_form())
+        }
+        
+        switch (leftParen, peak()) {
+        case ("(", ")"):
+            return list
+        case ("[", "]"):
+            return Vector(list)
+        case ("{", "}"):
+            var hashMap: [String: MalData] = [:]
+            for index in stride(from: 0, to: list.count, by: 2) {
+                guard list[index] is String, index+1 < list.count else { throw MalError.Error }
+                hashMap.updateValue(list[index+1], forKey: list[index] as! String)
+            }
+            return hashMap
+        default:
+            throw MalError.ParensMismatch
+        }
+    }
+    
+    mutating func read_atom() throws -> MalData {
+        let token = next()!
+        let regexInt = "^-?[0-9]+$"
+        let regexString = "\"(?:\\\\.|[^\\\\\"])*\""
+        let regexStringUnbalanced = "\"(?:\\\\.|[^\\\\\"])*"
+        let regexKeyword = "^:"
+        func match(string: String, regex: String) -> Bool {
+            return token.range(of: regex, options: .regularExpression, range: token.startIndex..<token.endIndex) != nil
+        }
+        switch token {
+        case let token where match(string: token, regex: regexInt):
+            return Int(token)!
+        case let token where match(string: token, regex: regexKeyword):
+            let firstChar = token.startIndex...token.startIndex
+            return token.replacingCharacters(in: firstChar, with: "\u{029E}")
+        case let token where match(string: token, regex: regexString):
+            let stripped = token.dropFirst().dropLast()
+            return stripped.replacingOccurrences(of: "\\\\", with: "\u{029E}")
+                .replacingOccurrences(of: "\\\"", with: "\"")
+                .replacingOccurrences(of: "\\n", with: "\n")
+                .replacingOccurrences(of: "\u{029E}", with: "\\")
+        case let token where match(string: token, regex: regexStringUnbalanced):
+            throw MalError.QuotationMarkMismatch
+        case "true":
+            return true
+        case "false":
+            return false
+        case "nil":
+            return Nil()
+        default:
+            return Symbol(token)
+        }
+    }
 }
 
-func read_str(_ str: String) throws -> MalVal {
-    return try read_form(Reader(str))
+func tokenizer(_ input: String) -> [String] {
+    guard let regex = try? NSRegularExpression(pattern: "[\\s,]*(~@|[\\[\\]{}()'`~^@]|\"(?:[\\\\].|[^\\\\\"])*\"?|;.*|[^\\s\\[\\]{}()'\"`@,;]+)", options: .useUnixLineSeparators)
+        else { return [] }
+    let matches = regex.matches(in: input, range: NSMakeRange(0, input.count))
+    
+    return matches.map { match in
+        String(input[Range(match.range(at: 1), in: input)!])
+    }.filter { token in
+        !token.hasPrefix(";") && !token.isEmpty }
 }
+
+
+func read_str(_ input: String) throws -> MalData {
+    let tokens = tokenizer(input)
+    guard tokens.count>0 else {
+        throw MalError.EmptyData
+    }
+    var reader = Reader(tokens: tokens)
+    return try reader.read_form()
+}
+
+
+
+
+

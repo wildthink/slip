@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		964B53242291C6BF00F1003C /* StringScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13DAA21AEDDE100232F39 /* StringScanner.swift */; };
 		96660EBD20EE2D1000554A7F /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660EBC20EE2D1000554A7F /* main.swift */; };
 		96660ED420EF18B500554A7F /* printer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660ECF20EF18B500554A7F /* printer.swift */; };
 		96660ED520EF18B500554A7F /* core.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96660ED020EF18B500554A7F /* core.swift */; };
@@ -64,6 +65,13 @@
 		96660ED220EF18B500554A7F /* reader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = reader.swift; sourceTree = "<group>"; };
 		96660ED320EF18B500554A7F /* env.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = env.swift; sourceTree = "<group>"; };
 		96660F3620F079AC00554A7F /* LispLab.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = LispLab.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		966ADFC9229115D400734FAC /* pprint.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pprint.mal; sourceTree = "<group>"; };
+		966ADFCA229115D400734FAC /* protocols.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = protocols.mal; sourceTree = "<group>"; };
+		966ADFCB229115D400734FAC /* hello.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hello.mal; sourceTree = "<group>"; };
+		966ADFCC229115D400734FAC /* memoize.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = memoize.mal; sourceTree = "<group>"; };
+		966ADFCD229115D400734FAC /* clojurewest2014.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = clojurewest2014.mal; sourceTree = "<group>"; };
+		966ADFCE229115D400734FAC /* equality.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = equality.mal; sourceTree = "<group>"; };
+		966ADFCF229115D400734FAC /* presentation.mal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = presentation.mal; sourceTree = "<group>"; };
 		96E13D9321AEDDC500232F39 /* SlipLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SlipLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		96E13D9521AEDDC500232F39 /* SlipLib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SlipLib.h; sourceTree = "<group>"; };
 		96E13D9621AEDDC500232F39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -111,6 +119,7 @@
 		96660EB020EE2D1000554A7F = {
 			isa = PBXGroup;
 			children = (
+				966ADFC8229115D400734FAC /* examples */,
 				96E13DB421AEF94600232F39 /* xcconfigs */,
 				96660F3620F079AC00554A7F /* LispLab.playground */,
 				96660EBB20EE2D1000554A7F /* src */,
@@ -141,6 +150,20 @@
 				96660EBC20EE2D1000554A7F /* main.swift */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		966ADFC8229115D400734FAC /* examples */ = {
+			isa = PBXGroup;
+			children = (
+				966ADFC9229115D400734FAC /* pprint.mal */,
+				966ADFCA229115D400734FAC /* protocols.mal */,
+				966ADFCB229115D400734FAC /* hello.mal */,
+				966ADFCC229115D400734FAC /* memoize.mal */,
+				966ADFCD229115D400734FAC /* clojurewest2014.mal */,
+				966ADFCE229115D400734FAC /* equality.mal */,
+				966ADFCF229115D400734FAC /* presentation.mal */,
+			);
+			path = examples;
 			sourceTree = "<group>";
 		};
 		96E13D9421AEDDC500232F39 /* SlipLib */ = {
@@ -323,6 +346,7 @@
 				96660ED520EF18B500554A7F /* core.swift in Sources */,
 				96660ED620EF18B500554A7F /* types.swift in Sources */,
 				96660ED820EF18B500554A7F /* env.swift in Sources */,
+				964B53242291C6BF00F1003C /* StringScanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

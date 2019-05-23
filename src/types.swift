@@ -1,232 +1,151 @@
 
+import Foundation
+
+enum MalDataType: String {
+    case Number, String, List, Vector, HashMap, Symbol, Keyword, Atom, Nil, True, False, Function, Unknown
+}
+
+protocol MalData {
+    var dataType: MalDataType { get }
+    
+    var count: Int { get }
+    var listForm: [MalData] { get }
+}
+extension MalData {
+    var dataType: MalDataType { // not used
+        return MalDataType(rawValue: String(describing: type(of: self))) ?? MalDataType.Unknown
+    }
+    var count: Int { return 0 }
+    var listForm: [MalData] { return [] }
+}
+
+typealias Number = Int
+typealias List = Array
+typealias Vector = ContiguousArray
+typealias HashMap = Dictionary
+
+struct Symbol: MalData {
+    let dataType = MalDataType.Symbol
+    let name: String
+    init(_ name: String) {
+        self.name = name
+    }
+}
+
+struct Nil: MalData {
+    let dataType = MalDataType.Nil
+}
+
+class Atom: MalData {
+    let dataType = MalDataType.Atom
+    var value: MalData
+    init(_ value: MalData) {
+        self.value = value
+    }
+}
+
+struct Function: MalData {
+    let dataType = MalDataType.Function
+    
+    let ast: MalData?
+    let params: [Symbol]?
+    let env: Env?
+    let fn: (([MalData]) throws -> MalData)
+    let isMacro: Bool
+    let meta: MalData?
+    
+    init(ast: MalData? = nil, params: [Symbol]? = nil, env: Env? = nil, isMacro: Bool = false, meta: MalData? = nil,
+         fn: @escaping ([MalData]) throws -> MalData) {
+        self.ast = ast
+        self.params = params
+        self.env = env
+        self.isMacro = isMacro
+        self.fn = fn
+        self.meta = meta
+    }
+    init(withFunction function: Function, isMacro: Bool) {
+        self.ast = function.ast
+        self.params = function.params
+        self.env = function.env
+        self.fn = function.fn
+        self.meta = function.meta
+        self.isMacro = isMacro
+    }
+    init(withFunction function: Function, meta: MalData) {
+        self.ast = function.ast
+        self.params = function.params
+        self.env = function.env
+        self.fn = function.fn
+        self.isMacro = function.isMacro
+        self.meta = meta
+    }
+
+}
+
+
+extension String: MalData {
+    var dataType: MalDataType {
+        return !self.isEmpty && self[startIndex] == "\u{029E}" ? .Keyword : .String }
+}
+extension Number: MalData {
+    var dataType: MalDataType { return .Number }
+}
+extension Bool  : MalData {
+    var dataType: MalDataType { return self == true ? .True : .False }
+}
+
+extension List  : MalData {
+    var dataType: MalDataType { return .List }
+    var listForm: [MalData] { return self as! [MalData] }
+}
+extension Vector: MalData {
+    var dataType: MalDataType { return .Vector }
+    var listForm: [MalData] { return List(self) as! [MalData] }
+}
+extension ArraySlice: MalData {
+    var dataType: MalDataType { return .List }
+    var listForm: [MalData] { return List(self) as! [MalData] }
+}
+extension HashMap: MalData {
+    var dataType: MalDataType { return .HashMap }
+    static func hashMap(fromList list: [MalData]) throws -> [String: MalData] {
+        var hashMap: [String: MalData] = [:]
+        for index in stride(from: 0, to: list.count, by: 2) {
+            guard list[index] is String, index+1 < list.count else { throw MalError.Error }
+            hashMap.updateValue(list[index+1], forKey: list[index] as! String)
+        }
+        return hashMap
+    }
+}
+
+// MARK: Errors
 enum MalError: Error {
-    case Reader(msg: String)
-    case General(msg: String)
-    case MalException(obj: MalVal)
-}
-
-class MutableAtom {
-    var val: MalVal
-    init(val: MalVal) {
-        self.val = val
-    }
-}
-
-enum MalVal {
-    case MalNil
-    case MalTrue
-    case MalFalse
-    case MalInt(Int)
-    case MalFloat(Float)
-    case MalString(String)
-    case MalSymbol(String)
-    case MalKeyword(String)
-    case MalList(Array<MalVal>, meta: Array<MalVal>?)
-    case MalVector(Array<MalVal>, meta: Array<MalVal>?)
-    case MalHashMap(Dictionary<String,MalVal>, meta: Array<MalVal>?)
-    // TODO: internal MalVals are wrapped in arrays because otherwise
-    // compiler throws a fault
-    case MalFunc((Array<MalVal>) throws -> MalVal,
-                 ast: Array<MalVal>?,
-                 env: Env?,
-                 params: Array<MalVal>?,
-                 macro: Bool,
-                 meta: Array<MalVal>?)
-    case MalAtom(MutableAtom)
-}
-
-extension MalVal {
-
-//    public func hash(into hasher: inout Hasher) {
-//        hasher.combine(
-//    }
-    public static func == (lhs: MalVal, rhs: MalVal) -> Bool {
-        return equal_Q(lhs, rhs)
-    }
-
-
-}
-typealias MV = MalVal
-
-// General functions
-
-func wraptf(_ a: Bool) -> MalVal {
-    return a ? MV.MalTrue : MV.MalFalse
-}
-
-
-// equality functions
-func cmp_seqs(_ a: Array<MalVal>, _ b: Array<MalVal>) -> Bool {
-    if a.count != b.count { return false }
-    var idx = a.startIndex
-    while idx < a.endIndex {
-        if !equal_Q(a[idx], b[idx]) { return false }
-        idx = a.index(after:idx)
-    }
-    return true
-}
-
-func cmp_maps(_ a: Dictionary<String,MalVal>,
-              _ b: Dictionary<String,MalVal>) -> Bool {
-    if a.count != b.count { return false }
-    for (k,v1) in a {
-        if b[k] == nil { return false }
-        if !equal_Q(v1, b[k]!) { return false }
-    }
-    return true
-}
-
-func equal_Q(_ a: MalVal, _ b: MalVal) -> Bool {
-    switch (a, b) {
-    case (MV.MalNil, MV.MalNil): return true
-    case (MV.MalFalse, MV.MalFalse): return true
-    case (MV.MalTrue, MV.MalTrue): return true
-
-    case (MV.MalInt(let i1), MV.MalInt(let i2)): return i1 == i2
-    case (MV.MalFloat(let i1), MV.MalFloat(let i2)): return i1 == i2
-    case (MV.MalKeyword(let i1), MV.MalKeyword(let i2)): return i1 == i2
-    case (MV.MalString(let s1), MV.MalString(let s2)): return s1 == s2
-    case (MV.MalSymbol(let s1), MV.MalSymbol(let s2)): return s1 == s2
-    case (MV.MalList(let l1,_), MV.MalList(let l2,_)):
-        return cmp_seqs(l1, l2)
-    case (MV.MalList(let l1,_), MV.MalVector(let l2,_)):
-        return cmp_seqs(l1, l2)
-    case (MV.MalVector(let l1,_), MV.MalList(let l2,_)):
-        return cmp_seqs(l1, l2)
-    case (MV.MalVector(let l1,_), MV.MalVector(let l2,_)):
-        return cmp_seqs(l1, l2)
-    case (MV.MalHashMap(let d1,_), MV.MalHashMap(let d2,_)):
-        return cmp_maps(d1, d2)
-    default:
-        return false
-    }
-}
-
-// list and vector functions
-func list(_ lst: Array<MalVal>) -> MalVal {
-    return MV.MalList(lst, meta:nil)
-}
-func list(_ lst: Array<MalVal>, meta: MalVal) -> MalVal {
-    return MV.MalList(lst, meta:[meta])
-}
-
-func vector(_ lst: Array<MalVal>) -> MalVal {
-    return MV.MalVector(lst, meta:nil)
-}
-func vector(_ lst: Array<MalVal>, meta: MalVal) -> MalVal {
-    return MV.MalVector(lst, meta:[meta])
-}
-
-
-// hash-map functions
-
-func _assoc(_ src: Dictionary<String,MalVal>, _ mvs: Array<MalVal>)
-        throws -> Dictionary<String,MalVal> {
-    var d = src
-    if mvs.count % 2 != 0 {
-        throw MalError.General(msg: "Odd number of args to assoc_BANG")
-    }
-    var pos = mvs.startIndex
-    while pos < mvs.count {
-        switch (mvs[pos], mvs[pos+1]) {
-        case (MV.MalString(let k), let mv):
-            d[k] = mv
-            // jmj Keyword
-        case (MV.MalKeyword(let k), let mv):
-            d[k] = mv
+    case ParensMismatch
+    case QuotationMarkMismatch
+    case EmptyData
+    case SymbolNotFound(Symbol)
+    case InvalidArgument
+    case Error
+    case IndexOutOfBounds
+    case MalException(MalData)
+    func info() -> MalData {
+        switch self {
+        case .ParensMismatch:
+            return "unbalanced parens"
+        case .QuotationMarkMismatch:
+            return "unbalanced quotation mark"
+        case .EmptyData:
+            return "empty data"
+        case .InvalidArgument:
+            return "invalid argument"
+        case .SymbolNotFound(let symbol):
+            return "'\(symbol.name)' not found"
+        case .IndexOutOfBounds:
+            return "index out of bounds"
+        case .MalException(let data):
+            return data
         default:
-            throw MalError.General(msg: "Invalid _assoc call")
+            return "uncaught error!"
         }
-        pos += 2
-    }
-    return d
-}
-
-func _dissoc(_ src: Dictionary<String,MalVal>, _ mvs: Array<MalVal>)
-        throws -> Dictionary<String,MalVal> {
-    var d = src
-    for mv in mvs {
-        switch mv {
-            // jmj Keyword
-        case MV.MalKeyword(let k): d.removeValue(forKey: k)
-        case MV.MalString(let k): d.removeValue(forKey: k)
-        default: throw MalError.General(msg: "Invalid _dissoc call")
-        }
-    }
-    return d
-}
-
-
-func hash_map(_ dict: Dictionary<String,MalVal>) -> MalVal {
-    return MV.MalHashMap(dict, meta:nil)
-}
-
-func hash_map(_ dict: Dictionary<String,MalVal>, meta:MalVal) -> MalVal {
-    return MV.MalHashMap(dict, meta:[meta])
-}
-
-func hash_map(_ arr: Array<MalVal>) throws -> MalVal {
-    let d = Dictionary<String,MalVal>();
-    return MV.MalHashMap(try _assoc(d, arr), meta:nil)
-}
-
-
-// function functions
-func malfunc(_ fn: @escaping (Array<MalVal>) throws -> MalVal) -> MalVal {
-    return MV.MalFunc(fn, ast: nil, env: nil, params: nil,
-                      macro: false, meta: nil)
-}
-func malfunc(_ fn: @escaping (Array<MalVal>) throws -> MalVal,
-             ast: Array<MalVal>?,
-             env: Env?,
-             params: Array<MalVal>?) -> MalVal {
-    return MV.MalFunc(fn, ast: ast, env: env, params: params,
-                      macro: false, meta: nil)
-}
-func malfunc(_ fn: @escaping (Array<MalVal>) throws -> MalVal,
-             ast: Array<MalVal>?,
-             env: Env?,
-             params: Array<MalVal>?,
-             macro: Bool,
-             meta: MalVal?) -> MalVal {
-    return MV.MalFunc(fn, ast: ast, env: env, params: params,
-                      macro: macro, meta: meta != nil ? [meta!] : nil)
-}
-func malfunc(_ fn: @escaping (Array<MalVal>) throws -> MalVal,
-             ast: Array<MalVal>?,
-             env: Env?,
-             params: Array<MalVal>?,
-             macro: Bool,
-             meta: Array<MalVal>?) -> MalVal {
-    return MV.MalFunc(fn, ast: ast, env: env, params: params,
-                      macro: macro, meta: meta)
-}
-
-// sequence functions
-
-func _rest(_ a: MalVal) throws -> Array<MalVal> {
-    switch a {
-    case MV.MalList(let lst,_):
-        let start = lst.index(after: lst.startIndex)
-        let slc = lst[start..<lst.endIndex]
-        return Array(slc)
-    case MV.MalVector(let lst,_):
-        let start = lst.index(after: lst.startIndex)
-        let slc = lst[start..<lst.endIndex]
-        return Array(slc)
-    default:
-        throw MalError.General(msg: "Invalid rest call")
-    }
-}
-
-func rest(_ a: MalVal) throws -> MalVal {
-    return list(try _rest(a))
-}
-
-func _nth(_     a: MalVal, _ idx: Int) throws -> MalVal {
-    switch a {
-    case MV.MalList(let l,_): return l[l.startIndex.advanced(by: idx)]
-    case MV.MalVector(let l,_): return l[l.startIndex.advanced(by: idx)]
-    default: throw MalError.General(msg: "Invalid nth call")
     }
 }

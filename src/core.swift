@@ -1,480 +1,210 @@
-// TODO: remove this once time-ms and slurp use standard library calls
 
-#if os(Linux)
-import Glibc
-#else
-import Darwin
-#endif
+import Foundation
 
-// jmj
-func IntReduce(_ op: (Int, Int) -> Int, _ start: Int, _ argv: [MalVal]) throws -> MalVal {
-    let result = try argv.reduce(MV.MalInt(start)) {
-
-    switch ($0, $1) {
-    case (MV.MalInt(let i1), MV.MalInt(let i2)):
-        return MV.MalInt(op(i1, i2))
-    default:
-        throw MalError.General(msg: "Invalid IntReduce call")
+func calculate(_ args: [MalData], op: (Number, Number) -> Number) throws -> MalData {
+    guard args.count == 2, args[0] is Number, args[1] is Number else {
+        throw MalError.InvalidArgument
     }
-    }
-    return result
+    return op(args[0] as! Number, args[1] as! Number)
 }
 
-func isKeyword (_ val: MalVal) -> Bool {
-    switch val {
-    case MV.MalString(let s) where s.count > 0:
-        return s[s.startIndex] == "\u{029e}"
-    default: return false
+func isEqualList(_ l: [MalData], _ r: [MalData]) -> Bool {
+    guard l.count == r.count else {
+        return false
+    }
+    for i in l.indices {
+        if !isEqual(l[i], r[i]) { return false }
+    }
+    return true
+}
+
+func isEqualHashMap (_ l: [String: MalData], _ r: [String: MalData]) -> Bool {
+    guard l.count == r.count else {
+        return false
+    }
+    for key in l.keys {
+        guard let lValue = l[key], let rValue = r[key] else { return false }
+        if !isEqual(lValue, rValue) { return false }
+    }
+    return true
+}
+
+func isEqual(_ l: MalData, _ r: MalData) -> Bool {
+    switch (l.dataType, r.dataType) {
+    case (.Symbol, .Symbol):
+        return (l as! Symbol).name == (r as! Symbol).name
+    case (.String, .String), (.Keyword, .Keyword):
+        return (l as! String) == (r as! String)
+    case (.Number, .Number):
+        return (l as! Number) == (r as! Number)
+    case (.List, .List), (.Vector, .Vector), (.List, .Vector), (. Vector, .List):
+        return isEqualList(l.listForm, r.listForm)
+    case (.HashMap, .HashMap):
+        return isEqualHashMap((l as! [String: MalData]), (r as! [String: MalData]))
+    case (.Nil, .Nil), (.True, .True), (.False, .False):
+        return true
+    default: // atom, function
+        return false
     }
 }
 
-// jmj end
-
-func IntOp(_ op: (Int, Int) -> Int, _ a: MalVal, _ b: MalVal) throws -> MalVal {
-    switch (a, b) {
-    case (MV.MalInt(let i1), MV.MalInt(let i2)):
-        return MV.MalInt(op(i1, i2))
-    default:
-        throw MalError.General(msg: "Invalid IntOp call")
+func hashMap(fromList list: [MalData]) throws -> [String: MalData] {
+    var hashMap: [String: MalData] = [:]
+    for index in stride(from: 0, to: list.count, by: 2) {
+        guard list[index] is String, index+1 < list.count else { throw MalError.Error }
+        hashMap.updateValue(list[index+1], forKey: list[index] as! String)
     }
+    return hashMap
 }
 
-func CmpOp(_ op: (Int, Int) -> Bool, _ a: MalVal, _ b: MalVal) throws -> MalVal {
-    switch (a, b) {
-    case (MV.MalInt(let i1), MV.MalInt(let i2)):
-        return wraptf(op(i1, i2))
-    default:
-        throw MalError.General(msg: "Invalid CmpOp call")
-    }
-}
+let ns: [String: ([MalData]) throws -> MalData] =
+    ["+":       { try calculate($0, op: +) },
+     "-":       { try calculate($0, op: -) },
+     "*":       { try calculate($0, op: *) },
+     "/":       { try calculate($0, op: /) },
+     "<":       { args in (args[0] as! Number) <  (args[1] as! Number) },
+     ">":       { args in (args[0] as! Number) >  (args[1] as! Number) },
+     "<=":      { args in (args[0] as! Number) <= (args[1] as! Number) },
+     ">=":      { args in (args[0] as! Number) >= (args[1] as! Number) },
+     
+     "=":       { args in let left = args[0], right = args[1]; return isEqual(left, right) },
+     
+     "pr-str":  { $0.map { pr_str($0, print_readably: true)}.joined(separator: " ") },
+     "str":     { $0.map { pr_str($0, print_readably: false)}.joined(separator: "") },
+     "prn":     { print($0.map { pr_str($0, print_readably: true)}.joined(separator: " ")); return Nil() },
+     "println": { print($0.map { pr_str($0, print_readably: false)}.joined(separator: " ")); return Nil() },
+     
+     "list":    { List($0) },
+     "list?":   { let param = $0[0]; return param is [MalData] },
+     "empty?":  { $0[0].count == 0 },
+     "count":   { $0[0].count },
+     
+     "read-string": { try read_str($0[0] as! String) },
+     "slurp":   { try String(contentsOfFile: $0[0] as! String) },
+     
+     "atom":    { Atom($0[0]) },
+     "atom?":   { $0[0] is Atom },
+     "deref":   { ($0[0] as? Atom)?.value ?? Nil() },
+     "reset!":  { args in (args[0] as! Atom).value = args[1]; return args[1] },
+     "swap!":   { args in
+        let atom = args[0] as! Atom, fn = args[1] as! Function,
+            others = args.dropFirst(2).listForm
+        atom.value = try fn.fn([atom.value] + others)
+        return atom.value
+        },
+     "cons":    { args in [args[0]] + args[1].listForm },
+     "concat":  { $0.reduce([]) { (result, array ) in result + array.listForm } },
+     
+     "nth":     { args in
+        let list = args[0].listForm, i = args[1] as! Int
+        guard list.indices.contains(i) else { throw MalError.IndexOutOfBounds }
+        return list[i]
+        },
+     "first":   { $0[0].listForm.first ?? Nil() },
+     "rest":    { $0[0].listForm.dropFirst().listForm },
+        
+     "throw":   { throw MalError.MalException($0[0]) },
+     "apply":   { args in
+        let fn = args[0] as! Function
+        let newArgs = args.dropFirst().dropLast().listForm + args.last!.listForm
+        return try fn.fn(newArgs)
+        },
+     "map":     { args in
+        let fn = args[0] as! Function
+        let closure = fn.fn
+        var result: [MalData] = []
+        for element in args[1].listForm {
+            result.append(try fn.fn([element])) }
+        return result
+        },
+     
+     "nil?":    { $0[0] is Nil },
+     "true?":   { $0[0].dataType == .True },
+     "false?":  { $0[0].dataType == .False },
+     "symbol?": { $0[0].dataType == .Symbol },
+     "symbol":  { Symbol($0[0] as! String) },
+     "keyword": { ($0[0].dataType == .Keyword) ? $0[0] : "\u{029E}" + ($0[0] as! String) },
+     "keyword?":{ $0[0].dataType == .Keyword },
+     "vector":  { Vector($0) },
+     "vector?": { $0[0].dataType == .Vector },
+     "hash-map":{ try hashMap(fromList: $0) },
+     "map?":    { $0[0].dataType == .HashMap },
+     "assoc":   {
+        let map = $0[0] as! [String: MalData]
+        return map.merging(try hashMap(fromList: $0.dropFirst().listForm)) { (_, new) in new }
+        },
+     "dissoc":  { args in
+        let map = args[0] as! [String: MalData]
+        return map.filter { (key, _) in !(args.dropFirst().listForm as! [String]).contains(key) }
+        },
+     "get":     {
+        // jmj added isEmpty
+        if let map = $0[0] as? [String: MalData], !map.isEmpty {
+            return map[$0[1] as! String] ?? Nil() }
+        return Nil()
+        },
+     "contains?": { ($0[0] as! [String: MalData])[$0[1] as! String] != nil },
+     "keys":    {
+        ($0[0] as! [String: MalData]).reduce([]) { result, element in
+            let (key, _) = element
+            return result + [key] }
+        },
+     "vals":    {
+        ($0[0] as! [String: MalData]).reduce([]) { result, element in
+            let (_, value) = element
+            return result + [value] }
+        },
+     "sequential?": { [.List, .Vector].contains($0[0].dataType) },
 
-
-
-let core_ns: Dictionary<String,(Array<MalVal>) throws -> MalVal> = [
-    "=":  { wraptf(equal_Q($0[0], $0[1])) },
-    "throw": { throw MalError.MalException(obj: $0[0]) },
-
-    "nil?": {
-        switch $0[0] {
-        case MV.MalNil: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "true?": {
-        switch $0[0] {
-        case MV.MalTrue: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "false?": {
-        switch $0[0] {
-        case MV.MalFalse: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "string?": {
-        switch $0[0] {
-        case MV.MalString(let s) where s.count == 0:
-            return MV.MalTrue
-        case MV.MalString(let s):
-            // jmj - Keyword check
-//            return wraptf(s[s.startIndex] != "\u{029e}")
-            return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "symbol": {
-        switch $0[0] {
-        case MV.MalSymbol(_): return $0[0]
-        case MV.MalString(let s): return MV.MalSymbol(s)
-        default: throw MalError.General(msg: "Invalid symbol call")
-        }
-    },
-    "symbol?": {
-        switch $0[0] {
-        case MV.MalSymbol(_): return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "keyword": {
-        switch $0[0] {
-            // jmj - Keyword check
-        case MV.MalKeyword(let s) where s.count > 0: return $0[0]
-        case MV.MalString(let s) where s.count > 0: return MV.MalKeyword(s)
-        default: throw MalError.General(msg: "Invalid keyword call")
-        }
-    },
-    "keyword?": {
-        // jmj - Keyword check
-        switch $0[0] {
-        case MV.MalKeyword(let s) where s.count > 0: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-
-    "pr-str":  {
-        // TODO: if the following two statements are combined into one, we get
-        // the following error message. It's not clear to me that there's
-        // actually any error, so this might be a compiler issue.
-        //
-        //      Sources/core.swift:29:59: error: type of expression is ambiguous without more context
-        //      let core_ns: [String: (Array<MalVal>) throws -> MalVal] = [
-        //                                                                ^
-
-        let s = $0.map { pr_str($0,true) }.joined(separator: " ")
-        return MV.MalString(s)
-    },
-    "str": {
-        // The comment for "pr-str" applies here, too.
-        let s = $0.map { pr_str($0,false) }.joined(separator: "")
-        return MV.MalString(s)
-    },
-    "prn": {
-        print($0.map { pr_str($0,true) }.joined(separator: " "))
-        return MV.MalNil
-    },
-    "println": {
-        print($0.map { pr_str($0,false) }.joined(separator: " "))
-        return MV.MalNil
-    },
-    "read-string": {
-        switch $0[0] {
-        case MV.MalString(let str): return try read_str(str)
-        default: throw MalError.General(msg: "Invalid read-string call")
-        }
-    },
-    "readline": {
-        switch $0[0] {
-        case MV.MalString(let prompt):
-            print(prompt, terminator: "")
-            let line = readLine(strippingNewline: true)
-            if line == nil { return MV.MalNil }
-            return MV.MalString(line!)
-        default: throw MalError.General(msg: "Invalid readline call")
-        }
-    },
-    "slurp": {
-        switch $0[0] {
-        case MV.MalString(let file):
-            let data = try String(contentsOfFile: file, encoding: String.Encoding.utf8)
-            return MV.MalString(data)
-        default: throw MalError.General(msg: "Invalid slurp call")
-        }
-    },
-
-
-    "<":  { try CmpOp({ $0 < $1},  $0[0], $0[1]) },
-    "<=": { try CmpOp({ $0 <= $1}, $0[0], $0[1]) },
-    ">":  { try CmpOp({ $0 > $1},  $0[0], $0[1]) },
-    ">=": { try CmpOp({ $0 >= $1}, $0[0], $0[1]) },
-
-    // jmj
-    "+":  { try IntReduce (+, 0, $0) },
-    "-":  { try IntReduce (-, 0, $0) },
-    "*":  { try IntReduce (*, 1, $0) },
-    "/":  { try IntReduce (/, 1, $0) },
-//    "+":  { try IntOp({ $0 + $1},  $0[0], $0[1]) },
-//    "-":  { try IntOp({ $0 - $1},  $0[0], $0[1]) },
-//    "*":  { try IntOp({ $0 * $1},  $0[0], $0[1]) },
-//    "/":  { try IntOp({ $0 / $1},  $0[0], $0[1]) },
-    // jmj - end
-    "time-ms": {
-        let read = $0; // no parameters
-
-        // TODO: replace with something more like this
-        // return MV.MalInt(NSDate().timeIntervalSince1970 )
-
-        var tv:timeval = timeval(tv_sec: 0, tv_usec: 0)
-        gettimeofday(&tv, nil)
-        return MV.MalInt(tv.tv_sec * 1000 + Int(tv.tv_usec)/1000)
-    },
-
-    "list": { list($0) },
-    "list?": {
-        switch $0[0] {
-        case MV.MalList: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "vector": { vector($0) },
-    "vector?": {
-        switch $0[0] {
-        case MV.MalVector: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "hash-map": { try hash_map($0) },
-    "map?": {
-        switch $0[0] {
-        case MV.MalHashMap: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "assoc": {
-        switch $0[0] {
-        case MV.MalHashMap(let dict, _):
-            return hash_map(try _assoc(dict, Array($0[1..<$0.endIndex])))
-        default: throw MalError.General(msg: "Invalid assoc call")
-        }
-    },
-    "dissoc": {
-        switch $0[0] {
-        case MV.MalHashMap(let dict, _):
-            return hash_map(try _dissoc(dict, Array($0[1..<$0.endIndex])))
-        default: throw MalError.General(msg: "Invalid dissoc call")
-        }
-    },
-    "get": {
-        switch ($0[0], $0[1]) {
-            // jmj - Keyword
-        case (MV.MalNil, _):
-            return MV.MalNil
-        case (MV.MalHashMap(let dict, _), MV.MalKeyword(let k)):
-            return dict[k] ?? MV.MalNil
-//        case (MV.MalNil, MV.MalKeyword(let k)):
-//            return MV.MalNil
-        case (MV.MalHashMap(let dict, _), MV.MalString(let k)):
-            return dict[k] ?? MV.MalNil
-//        case (MV.MalNil, MV.MalString(let k)):
-//            return MV.MalNil
-        default: throw MalError.General(msg: "Invalid get call")
-        }
-    },
-    "contains?": {
-        switch ($0[0], $0[1]) {
-        case (MV.MalHashMap(let dict, _), MV.MalString(let k)):
-            return dict[k] != nil ? MV.MalTrue : MV.MalFalse
-        case (MV.MalNil, MV.MalString(let k)):
-            return MV.MalFalse
-        default: throw MalError.General(msg: "Invalid contains? call")
-        }
-    },
-    "keys": {
-        switch $0[0] {
-        case MV.MalHashMap(let dict, _):
-            return list(dict.keys.map { MV.MalString($0) })
-        default: throw MalError.General(msg: "Invalid keys call")
-        }
-    },
-    "vals": {
-        switch $0[0] {
-        case MV.MalHashMap(let dict, _):
-            return list(dict.values.map { $0 })
-        default: throw MalError.General(msg: "Invalid vals call")
-        }
-    },
-
-
-    "sequential?": {
-        switch $0[0] {
-        case MV.MalList:   return MV.MalTrue
-        case MV.MalVector: return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "cons": {
-        if $0.count != 2 { throw MalError.General(msg: "Invalid cons call") }
-        switch ($0[0], $0[1]) {
-        case (let mv, MV.MalList(let lst, _)):
-            return list([mv] + lst)
-        case (let mv, MV.MalVector(let lst, _)):
-            return list([mv] + lst)
-        default: throw MalError.General(msg: "Invalid cons call")
-        }
-    },
-    "concat": {
-        var res = Array<MalVal>()
-        for seq in $0 {
-            switch seq {
-            case MV.MalList(let lst, _):   res = res + lst
-            case MV.MalVector(let lst, _): res = res + lst
-            default: throw MalError.General(msg: "Invalid concat call")
-            }
-        }
-        return list(res)
-    },
-    "nth": {
-        if $0.count != 2 { throw MalError.General(msg: "Invalid nth call") }
-        switch ($0[0], $0[1]) {
-        case (MV.MalList(let lst, _), MV.MalInt(let idx)):
-            if idx >= lst.count {
-                throw MalError.General(msg: "nth: index out of range")
-            }
-            return try _nth($0[0], idx)
-        case (MV.MalVector(let lst, _), MV.MalInt(let idx)):
-            if idx >= lst.count {
-                throw MalError.General(msg: "nth: index out of range")
-            }
-            return try _nth($0[0], idx)
+     "readline": {
+        print($0[0] as! String, terminator: "")
+        return readLine(strippingNewline: true) ?? Nil() },
+     
+     "meta":    {
+        switch $0[0].dataType {
+        case .Function:
+            return ($0[0] as! Function).meta ?? Nil()
         default:
-            throw MalError.General(msg: "Invalid nth call")
-        }
-    },
-    "first": {
-        switch $0[0] {
-        case MV.MalList(let lst, _):
-            return lst.count > 0 ? lst[0] : MV.MalNil
-        case MV.MalVector(let lst, _):
-            return lst.count > 0 ? lst[0] : MV.MalNil
-        case MV.MalNil: return MV.MalNil
-        default: throw MalError.General(msg: "Invalid first call")
-        }
-    },
-    "rest": {
-        switch $0[0] {
-        case MV.MalList(let lst, _):
-            return lst.count > 0 ? try rest($0[0]) : list([])
-        case MV.MalVector(let lst, _):
-            return lst.count > 0 ? try rest($0[0]) : list([])
-        case MV.MalNil: return list([])
-        default: throw MalError.General(msg: "Invalid rest call")
-        }
-    },
-    "empty?": {
-        switch $0[0] {
-        case MV.MalList(let lst, _):
-            return lst.count == 0 ? MV.MalTrue : MV.MalFalse
-        case MV.MalVector(let lst, _):
-            return lst.count == 0 ? MV.MalTrue : MV.MalFalse
-        case MV.MalNil: return MV.MalTrue
-        default: throw MalError.General(msg: "Invalid empty? call")
-        }
-    },
-    "count": {
-        switch $0[0] {
-        case MV.MalList(let lst, _):   return MV.MalInt(lst.count)
-        case MV.MalVector(let lst, _): return MV.MalInt(lst.count)
-        case MV.MalNil: return MV.MalInt(0)
-        default: throw MalError.General(msg: "Invalid count call")
-        }
-    },
-    "apply": {
-        let fn: (Array<MalVal>) throws -> MalVal
-        switch $0[0] {
-        case MV.MalFunc(let f, _, _, _, _, _): fn = f
-        default: throw MalError.General(msg: "Invalid apply call")
-        }
-
-        var args = Array($0[1..<$0.endIndex-1])
-        switch $0[$0.endIndex-1] {
-        case MV.MalList(let l, _):  args = args + l
-        case MV.MalVector(let l, _): args = args + l
-        default: throw MalError.General(msg: "Invalid apply call")
-        }
-
-        return try fn(args)
-    },
-    "map": {
-        let fn: (Array<MalVal>) throws -> MalVal
-        switch $0[0] {
-        case MV.MalFunc(let f, _, _, _, _, _): fn = f
-        default: throw MalError.General(msg: "Invalid map call")
-        }
-
-        var lst = Array<MalVal>()
-        switch $0[1] {
-        case MV.MalList(let l, _):   lst = l
-        case MV.MalVector(let l, _): lst = l
-        default: throw MalError.General(msg: "Invalid map call")
-        }
-
-        var res = Array<MalVal>()
-        for mv in lst {
-            res.append(try fn([mv]))
-        }
-        return list(res)
-    },
-
-    "conj": {
-        if $0.count < 1 { throw MalError.General(msg: "Invalid conj call") }
-        switch $0[0] {
-        case MV.MalList(let lst, _):
-            let a = Array($0[1..<$0.endIndex]).reversed()
-            return list(a + lst)
-        case MV.MalVector(let lst, _):
-            return vector(lst + $0[1..<$0.endIndex])
-        default: throw MalError.General(msg: "Invalid conj call")
-        }
-    },
-    "seq": {
-        if $0.count < 1 { throw MalError.General(msg: "Invalid seq call") }
-        switch $0[0] {
-        case MV.MalList(let lst, _):
-            if lst.count == 0 { return MV.MalNil }
+            return Nil()
+        }},
+     "with-meta": {
+        switch $0[0].dataType {
+        case .Function:
+            return Function(withFunction: $0[0] as! Function, meta: $0[1])
+        default:
             return $0[0]
-        case MV.MalVector(let lst, _):
-            if lst.count == 0 { return MV.MalNil }
-            return list(lst)
-        case MV.MalString(let str):
-            if str.count == 0 { return MV.MalNil }
-            return list(str.map { MV.MalString(String($0)) })
-        case MV.MalNil:
-            return MV.MalNil
-        default: throw MalError.General(msg: "Invalid seq call")
-        }
-    },
-
-    "meta": {
-        switch $0[0] {
-        case MV.MalList(_, let m):
-            return m != nil ? m![0] : MV.MalNil
-        case MV.MalVector(_, let m):
-            return m != nil ? m![0] : MV.MalNil
-        case MV.MalHashMap(_, let m):
-            return m != nil ? m![0] : MV.MalNil
-        case MV.MalFunc(_, _, _, _, _, let m):
-            return m != nil ? m![0] : MV.MalNil
-        default: throw MalError.General(msg: "meta called on non-function")
-        }
-    },
-    "with-meta": {
-        switch $0[0] {
-        case MV.MalList(let l, _):
-            return list(l, meta: $0[1])
-        case MV.MalVector(let l, _):
-            return vector(l, meta: $0[1])
-        case MV.MalHashMap(let d, _):
-            return hash_map(d, meta: $0[1])
-        case MV.MalFunc(let f, let a, let e, let p, let m, _):
-            return malfunc(f, ast:a, env:e, params:p, macro:m, meta:$0[1])
-            //return MV.MalFunc(f,ast:a,env:e,params:p,macro:m,meta:[$0[1]])
+        }},
+     "time-ms": { _ in Int(Date().timeIntervalSince1970 * 1000) },
+     "conj":    {
+        if let list = $0[0] as? [MalData] {
+            return $0.dropFirst().reversed().listForm + list
+        } else { // vector
+            return ($0[0] as! Vector) + Vector($0.dropFirst())
+        }},
+     "string?": { $0[0].dataType == .String },
+     "number?": { $0[0].dataType == .Number },
+     "fn?":     {
+        if let fn = $0[0] as? Function {
+            return !fn.isMacro
+        } else {
+            return false
+        }},
+     "macro?":  {
+        if let fn = $0[0] as? Function {
+            return fn.isMacro
+        } else {
+            return false
+        }},
+     "seq":     {
+        if $0[0].count == 0 { return Nil() }
+        switch $0[0].dataType {
+        case .List:
+            return $0[0] as! List<MalData>
+        case .Vector:
+            return List($0[0] as! ContiguousArray<MalData>)
+        case .String:
+            return List($0[0] as! String).map { String($0) }
         default:
-            throw MalError.General(msg: "with-meta called on non-collection")
-        }
-    },
-    "atom": {
-        return MV.MalAtom(MutableAtom(val: $0[0]))
-    },
-    "atom?": {
-        switch $0[0] {
-        case MV.MalAtom(_): return MV.MalTrue
-        default: return MV.MalFalse
-        }
-    },
-    "deref": {
-        switch $0[0] {
-        case MV.MalAtom(let ma): return ma.val
-        default: throw MalError.General(msg: "Invalid deref call")
-        }
-    },
-    "reset!": {
-        switch $0[0] {
-        case MV.MalAtom(var a):
-            a.val = $0[1]
-            return $0[1]
-        default: throw MalError.General(msg: "Invalid reset! call")
-        }
-    },
-    "swap!": {
-        switch ($0[0], $0[1]) {
-        case (MV.MalAtom(var a), MV.MalFunc(let fn, _, _, _, _, _)):
-            var args = [a.val]
-            if $0.count > 2 {
-                args = args + Array($0[2..<$0.endIndex])
-            }
-            a.val = try fn(args)
-            return a.val
-        default: throw MalError.General(msg: "Invalid swap! call")
-        }
-    },
+            return Nil()
+        }},
 ]
